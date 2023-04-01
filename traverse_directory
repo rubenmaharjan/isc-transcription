@@ -1,0 +1,11 @@
+import os
+import glob
+
+def get_audio_files(directory_path, file_extension):
+    """
+    Returns the list of audio files in the specified directory with the specified file extension.
+    """
+    # Use glob to get all the files with the specified extension
+    audio_files = glob.glob(os.path.join(directory_path, file_extension))
+
+    return audio_files
