@@ -1,0 +1,9 @@
+<config>
+    <library> whisper</library>
+    <audiodir>~/mnt/recordings</audiodir>
+    <transcriptiondir>~/mnt/transcription</transcriptiondir>
+    <settings>
+        <model>medium</model>
+        <verbosity>false</verbosity>
+    </settings>
+</config>
