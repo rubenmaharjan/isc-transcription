@@ -1,7 +1,6 @@
 import os
 import sys
 from logging_wrapper import set_up_logging, logging
-from hell import hell
 
 def main():
 
