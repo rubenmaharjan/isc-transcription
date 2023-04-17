@@ -4,6 +4,6 @@
     <transcriptiondir>~/mnt/transcription</transcriptiondir>
     <settings>
         <model>medium</model>
-        <verbosity>false</verbosity>
+        <verbosity>true</verbosity>
     </settings>
-</config>
+<test><level>True</level></test></config>
