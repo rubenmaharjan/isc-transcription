@@ -21,6 +21,7 @@ class Whisper(Transcribe):
         self.model_size = model_size
         self.audio = audio 
         self.output_file_path = output_file_path
+        self.model = load_model(self.model_size)
         return self
 
     def transcribe(self):
@@ -30,9 +31,8 @@ class Whisper(Transcribe):
         :return: The transcription text as a string.
         """
         logger.info(f"Loading {self.model_size} model")
-        model = load_model(self.model_size)
         logger.info("Starting transcription")
-        result = model.transcribe(self.audio, fp16=False)
+        result = self.model.transcribe(self.audio, fp16=False)
         logger.info("Finished transcription")
 
         logger.info(f"Writing transcription to file: {self.output_file_path}")
