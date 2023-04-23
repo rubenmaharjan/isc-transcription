@@ -1,1 +1,1 @@
-from . import logging_wrapper
+from . import ISCLogWrapper
