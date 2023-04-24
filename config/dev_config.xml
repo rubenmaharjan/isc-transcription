@@ -6,4 +6,5 @@
         <model>medium</model>
         <verbosity>true</verbosity>
     </settings>
-<test><level>True</level></test><extensions>['mp3', 'wav']</extensions><extensions>['mp3', 'wav']</extensions></config>
+    <extensions>['mp3', 'wav']</extensions>
+</config>
