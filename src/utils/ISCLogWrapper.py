@@ -3,6 +3,7 @@ import sys
 import logging
 import glob
 
+# Define constants used for the log line format and date format
 LOG_LINE_TEMPLATE="%(color_on)s[%(asctime)s.%(msecs)03d] [%(threadName)s] [%(levelname)-8s] [%(filename)s:%(lineno)d] %(message)s%(color_off)s"
 LOG_LING_DATEFMT="%Y-%m-%d %H:%M:%S"
 
@@ -32,17 +33,20 @@ class LogFormatter(logging.Formatter):
             record.color_off = ""
         return super(LogFormatter, self).format(record, *args, **kwargs)
 
+# This class wraps the logging module and provides methods to set up logging
 class ISCLogWrapper:
 
-
+    # The constructor takes several arguments that configure logging
     def __init__(self, console_log_output, console_log_level, console_log_color, logfile_file, logfile_path, logfile_log_level, logfile_log_color):
-        self.console_log_output = console_log_output
-        self.console_log_level = console_log_level
-        self.console_log_color = console_log_color
-        self.logfile_file = logfile_file
-        self.logfile_path = logfile_path
-        self.logfile_log_level = logfile_log_level
-        self.logfile_log_color = logfile_log_color
+        self.console_log_output = console_log_output # The output to write the console logs to (stdout or stderr)
+        self.console_log_level = console_log_level # The minimum logging level to log to the console (e.g., INFO, WARNING, etc.)
+        self.console_log_color = console_log_color # A boolean value indicating whether the console log should be colorized
+        self.logfile_file = logfile_file # The filename to write the logs to
+        self.logfile_path = logfile_path # The directory path to write the logs to
+        self.logfile_log_level = logfile_log_level # The minimum logging level to log to the file
+        self.logfile_log_color = logfile_log_color # A boolean value indicating whether the file log should be colorized
+
+    # Set up logging using the configuration values passed to the constructor
 
     # Set up logging
     def set_up_logging(self):
