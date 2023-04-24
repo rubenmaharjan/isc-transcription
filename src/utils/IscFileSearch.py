@@ -1,6 +1,10 @@
 import os
 import logging
 
+#get the logger
+logger = logging.getLogger()
+
+
 """
 This file references the os module, which provides a way to interact with the operating system, including
 file and directory manipulation.
@@ -12,8 +16,7 @@ class IscFileSearch:
         Initializes the IscFileSearch class with a path attribute and a logger attribute from the logging module.
         """
         self.path = path
-        self.logger = logging.getLogger(__name__)
-
+        
     
     def traverse_directory(self, path=None):
         """
@@ -24,12 +27,12 @@ class IscFileSearch:
             path = self.path
         
         if not os.path.exists(path):
-            self.logger.error("Directory does not exist: %s", path)
+            logger.error("Directory does not exist: %s", path)
             return []
 
         file_paths = []
         
-        for dirpath, dirnames, filenames in os.walk(path, onerror=self.logger.error):
+        for dirpath, dirnames, filenames in os.walk(path, onerror=logger.error):
             for filename in filenames:
                 file_path = os.path.join(dirpath, filename)
                 
@@ -43,7 +46,7 @@ class IscFileSearch:
         Returns a list of file paths in the directory whose extensions are in the specified file_exts parameter.
         """
         if not os.path.exists(self.path):
-            self.logger.error("Directory does not exist: %s", self.path)
+            logger.error("Directory does not exist: %s", self.path)
             return []
     
         return [os.path.join(self.path, file) for file in os.listdir(self.path) 
@@ -55,11 +58,11 @@ class IscFileSearch:
         Deletes a file at the specified path.
         """
         if not os.path.exists(file_path):
-            self.logger.error("File does not exist: %s", file_path)
+            logger.error("File does not exist: %s", file_path)
             return
         
         os.remove(file_path)
-        self.logger.info("File deleted: %s", file_path)
+        logger.info("File deleted: %s", file_path)
     
     def rename_file(self, old_name, new_name):
         """
@@ -69,20 +72,20 @@ class IscFileSearch:
         new_path = os.path.join(self.path, new_name)
 
         if not os.path.exists(old_path):
-            self.logger.error("File does not exist: %s", old_path)
+            logger.error("File does not exist: %s", old_path)
             return 1
 
         if os.path.exists(new_path):
-            self.logger.warning("File already exists with new name: %s", new_name)
+            logger.warning("File already exists with new name: %s", new_name)
             return 2
 
         try:
             os.rename(old_path, new_path)
-            self.logger.info("File renamed from %s to %s", old_name, new_name)
+            logger.info("File renamed from %s to %s", old_name, new_name)
             return 0
 
         except OSError as e:
-            self.logger.error("Failed to rename file %s to %s: %s", old_name, new_name, str(e))
+            logger.error("Failed to rename file %s to %s: %s", old_name, new_name, str(e))
             return 3
           
     def get_file_properties(self, file_path):
@@ -91,7 +94,7 @@ class IscFileSearch:
         file name, file size, creation time, modified time, and access time.
         """
         if not os.path.exists(file_path):
-            self.logger.error("File does not exist: %s", file_path)
+            logger.error("File does not exist: %s", file_path)
             return None
         
         file_stats = os.stat(file_path)
