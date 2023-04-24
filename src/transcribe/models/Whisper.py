@@ -1,43 +1,46 @@
 from src.transcribe.models.Transcribe import Transcribe
 from whisper import load_model
 import logging
+from typing import List
 
-#  get the root logger
-logger = logging.getLogger()
+#  get the logger
+logger = logging.getLogger(__name__)
 
 class Whisper(Transcribe):
     """
     A subclass of the Transcribe class that transcribes audio using the Whisper speech recognition library.
     """
 
-    def setup(self, model_size, audio, output_file_path):
+    def setup(self, audio_files: List[str]) -> Transcribe:
         """
         Initializes the Whisper object with the specified model size, audio data, and output file path.
 
         :param model_size: The size of the Whisper model to use for transcription.
-        :param audio: The audio data to transcribe.
-        :param output_file_path: The path of the file to write the transcription text to.
+        :param audio_files: The list of audio files to transcribe.
+        :param model: The path of the file to write the transcription text to.
+
+        :return: self
         """
-        self.model_size = model_size
-        self.audio = audio 
-        self.output_file_path = output_file_path
-        self.model = load_model(self.model_size)
+        # TODO Read from config
+        self.model_size = "tiny"
+        self.audio_files = audio_files 
+        self.model = load_model(self.model_size, in_memory=True)
         return self
 
     def transcribe(self):
         """
         Transcribes the audio using the loaded Whisper model and writes the transcription to a file.
 
-        :return: The transcription text as a string.
+        :return: None
         """
         logger.info(f"Loading {self.model_size} model")
-        logger.info("Starting transcription")
-        result = self.model.transcribe(self.audio, fp16=False)
-        logger.info("Finished transcription")
+        for audio in self.audio_files:
+            logger.info("Starting transcription")
+            result = self.model.transcribe(audio, fp16=False)
+            logger.info("Finished transcription")
 
-        logger.info(f"Writing transcription to file: {self.output_file_path}")
-        with open(self.output_file_path, "w+") as output_file:
-            output_file.write(result['text'])
-        logger.info("Finished writing transcription to file")
-
-        return result['text']
+            # TODO Use the utils to get the output file path
+            #logger.info(f"Writing transcription to file: {self.output_file_path}")
+            with open(audio.split('.')[0]+".txt", "w+") as output_file:
+                output_file.write(result['text'])
+            logger.info("Finished writing transcription to file")

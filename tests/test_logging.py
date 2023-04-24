@@ -6,7 +6,8 @@ import tempfile
 from io import StringIO
 from unittest.mock import patch
 
-from src.utils.logging_wrapper import ISCLogWrapper 
+from datetime import datetime
+from src.utils.ISCLogWrapper import ISCLogWrapper 
 
 
 class TestISCLogWrapper(unittest.TestCase):
@@ -17,7 +18,7 @@ class TestISCLogWrapper(unittest.TestCase):
         console_log_output = "stdout"
         console_log_level = "INFO"
         console_log_color = True
-        logfile_file = "test.log"
+        logfile_file = "logger_test" + datetime.now().strftime('mylogfile_%H_%M_%d_%m_%Y.log')
         logfile_path = tempfile.gettempdir()
         logfile_log_level = "DEBUG"
         logfile_log_color = False
@@ -66,7 +67,7 @@ class TestISCLogWrapper(unittest.TestCase):
         console_log_output = "invalid_output"
         console_log_level = "INFO"
         console_log_color = True
-        logfile_file = "test.log"
+        logfile_file = "logger_test" + datetime.now().strftime('mylogfile_%H_%M_%d_%m_%Y.log')
         logfile_path = tempfile.gettempdir()
         logfile_log_level = "DEBUG"
         logfile_log_color = False

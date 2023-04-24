@@ -1,6 +1,6 @@
 import unittest
 
-from src.transcribe.TranscriberFactory import TranscribeFactory
+from src.transcribe.TranscribeFactory import TranscribeFactory
 from src.transcribe.models.Transcribe import Transcribe
 
 class TestWhisper(unittest.TestCase):
@@ -10,8 +10,7 @@ class TestWhisper(unittest.TestCase):
         Define a setup method that initializes variables needed for tests
         '''
         self.whisper = TranscribeFactory.load_class("Whisper")
-        self.audio = "tests/files/test_audio.m4a"
-        self.output_file_path = "tests/files/test_output.txt" 
+        self.audio_files = ["tests/files/test_audio.m4a"]
         self.model_size = "tiny"
 
     def test_whisper(self):
@@ -24,7 +23,7 @@ class TestWhisper(unittest.TestCase):
         '''
         Define a test method that checks if transcription is successful and result matches the output file
         '''
-        self.whisper.setup(model_size=self.model_size, audio=self.audio, output_file_path=self.output_file_path)
+        self.whisper.setup(audio_files=self.audio_files)
         result = self.whisper.transcribe()
         with open(self.output_file_path, "r") as output_file:
             transcription = output_file.read()
@@ -34,7 +33,7 @@ class TestWhisper(unittest.TestCase):
         '''
         Define a test method that checks if the output of the transcribe method is a string and is not empty
         '''
-        self.whisper.setup(model_size=self.model_size, audio=self.audio, output_file_path=self.output_file_path)
+        self.whisper.setup(audio_files=self.audio_files)
         result = self.whisper.transcribe()
         self.assertIsInstance(result, str)
         self.assertNotEqual(result, "")

@@ -1,1 +1,1 @@
-from . import Whisper
+from . import Whisper, Transcribe
