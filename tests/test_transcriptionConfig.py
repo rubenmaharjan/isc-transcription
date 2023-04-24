@@ -1,7 +1,7 @@
 import unittest
 import os
 import xml.etree.ElementTree as ET
-from src.config_file.TranscriptionConfig import TranscriptionConfig
+from src.utils.TranscriptionConfig import TranscriptionConfig
 
 
 class TestTranscriptionConfig(unittest.TestCase):
