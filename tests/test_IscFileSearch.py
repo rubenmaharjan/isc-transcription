@@ -1,7 +1,8 @@
 import unittest
 import os
 
-from isc_file_search import IscFileSearch
+from importlib import import_module
+from src.utils.IscFileSearch import IscFileSearch
 
 class TestIscFileSearch(unittest.TestCase):
     def setUp(self):
@@ -70,3 +71,6 @@ class TestIscFileSearch(unittest.TestCase):
         self.assertEqual(file_props["file_name"], "file1.txt")
         self.assertEqual(file_props["file_size"], os.stat(self.file1_path).st_size)
 
+
+if __name__ == '__main__':
+    unittest.main()
