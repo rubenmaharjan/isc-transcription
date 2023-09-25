@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from src.utils.ISCLogWrapper import ISCLogWrapper, logging
 from src.transcribe.TranscribeFactory import TranscribeFactory
+from src.utils.TranscriptionConfig import TranscriptionConfig
 
 def main():
 
@@ -21,6 +22,17 @@ def main():
     model.setup(audio_files)
     model.transcribe()
 
+
+    # create a TranscriptionConfig object and read the XML file
+    path1 = os.getcwd()
+    # print("Tpath1: ", path1)
+    path = os.path.join(path1, "src/config_file/mock_data/config.xml")
+
+    config = TranscriptionConfig(path)
+
+    # get all the key-value pairs of config file
+    model = config.get_all()
+    print("Model: ", model)
 
 if __name__ == '__main__':
     main()
