@@ -26,19 +26,29 @@ class IscFileSearch:
         if path is None:
             path = self.path
         
+        def handle_error(error, dirpath):
+            logger.error("Failed to traverse directory %s: %s", dirpath, error)
+    
         if not os.path.exists(path):
             logger.error("Directory does not exist: %s", path)
             return []
 
         file_paths = []
-        
-        for dirpath, dirnames, filenames in os.walk(path, onerror=logger.error):
+    
+        for dirpath, dirnames, filenames in os.walk(path):
             for filename in filenames:
                 file_path = os.path.join(dirpath, filename)
-                
+            
                 if file_path.lower().endswith(('.mp3', '.wav')):
                     file_paths.append(file_path)
-                
+        
+            # handle errors after processing files in the current directory
+            try:
+                for dirname in dirnames:
+                    os.listdir(os.path.join(dirpath, dirname))
+            except OSError as error:
+                handle_error(error, dirpath)
+            
         return file_paths
     
     def get_files(self, file_exts=['mp3', 'wav']):
@@ -64,9 +74,11 @@ class IscFileSearch:
         os.remove(file_path)
         logger.info("File deleted: %s", file_path)
     
-    def rename_file(self, old_name, new_name):
+    
+    def rename_file(self, old_name, new_name, overwrite=False):
         """
         Renames a file in the directory from old_name to new_name and returns a status code.
+        If overwrite is set to True and a file with new_name already exists, it will be overwritten.
         """
         old_path = os.path.join(self.path, old_name)
         new_path = os.path.join(self.path, new_name)
@@ -75,9 +87,12 @@ class IscFileSearch:
             logger.error("File does not exist: %s", old_path)
             return 1
 
-        if os.path.exists(new_path):
+        if os.path.exists(new_path) and not overwrite:
             logger.warning("File already exists with new name: %s", new_name)
-            return 2
+            user_input = input("Do you want to overwrite the existing file? (y/n)").lower()
+            if user_input != "y":
+                logger.warning("File was not renamed: %s", old_name)
+                return 2
 
         try:
             os.rename(old_path, new_path)
@@ -87,6 +102,7 @@ class IscFileSearch:
         except OSError as e:
             logger.error("Failed to rename file %s to %s: %s", old_name, new_name, str(e))
             return 3
+
           
     def get_file_properties(self, file_path):
         """
