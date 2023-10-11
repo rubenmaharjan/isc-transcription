@@ -1,5 +1,7 @@
 import os
 import argparse
+from lxml import etree
+
 from datetime import datetime
 from src.utils.ISCLogWrapper import ISCLogWrapper, logging
 from src.transcribe.TranscribeFactory import TranscribeFactory
@@ -45,6 +47,25 @@ def get_audio_source(config, cmd_audio, cmd_config, logger):
             logger.error("Wrong file name or extension for the configuration file.")
     logger.info('Starting transcription with default audio directory')
     return config.get('audiodir')
+
+def validate_configxml(xml_file, xsd_file):
+    # Load the XML file
+    # xml_file = "config.xml"
+    # xsd_file = "config_schema.xsd"  # Path to your XSD file
+
+    # Parse the XML file
+    xml_doc = etree.parse(xml_file)
+
+    # Load the XML schema
+    schema = etree.XMLSchema(file=xsd_file)
+
+    # Validate the XML document against the schema
+    try:
+        schema.assertValid(xml_doc)
+        print("XML document is valid according to the schema.")
+    except Exception as e:
+        print("XML document is not valid according to the schema.")
+        print(e)
 
 def main():
     logger = setup_logging()
