@@ -7,6 +7,8 @@ from src.utils.ISCLogWrapper import ISCLogWrapper, logging
 from src.transcribe.TranscribeFactory import TranscribeFactory
 from src.utils.TranscriptionConfig import TranscriptionConfig
 
+default_audio='audio/rec.wav'
+
 def setup_logging():
     isc_log_wrapper = ISCLogWrapper(
         console_log_output="stdout",
@@ -32,21 +34,27 @@ def get_audio_source(config, cmd_audio, cmd_config, logger):
     if cmd_audio:
         logger.info('Starting transcription with cmd_audio audio directory')
         return cmd_audio
-    elif cmd_config:
-        if cmd_config.endswith('.xml'):
-            try:
-                extract_config = TranscriptionConfig(cmd_config)
-                if 'audiodir' in extract_config:
-                    logger.info('Starting transcription with cmd_config audio directory')
-                    return extract_config.get('audiodir')
-                else:
-                    logger.error("The configuration file does not contain 'audiodir'.")
-            except Exception as e:
-                logger.error("Error while reading the configuration file:", e)
-        else:
-            logger.error("Wrong file name or extension for the configuration file.")
-    logger.info('Starting transcription with default audio directory')
-    return config.get('audiodir')
+
+    if cmd_config and cmd_config.endswith('.xml'):
+        try:
+            extract_config = TranscriptionConfig(cmd_config)
+            if 'audiodir' in extract_config:
+                logger.info('Starting transcription with cmd_config audio directory')
+                return extract_config.get('audiodir')
+            else:
+                logger.error("The configuration file does not contain 'audiodir'.")
+        except Exception as e:
+            logger.error("Error while reading the configuration file:", e)
+    else:
+        logger.error("Wrong file name or extension for the configuration file.")
+
+    default_audio = config.get('audiodir')
+    if default_audio:
+        logger.info('Starting transcription with default audio directory')
+        return default_audio
+
+    logger.error("No valid audio directory specified. Transcription cannot proceed.")
+    return  default_audio
 
 def validate_configxml(xml_file, xsd_file):
     # Load the XML file
