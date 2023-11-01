@@ -79,7 +79,6 @@ def validate_configxml(xml_file, xsd_file):
 
 
 
-
 def main():
     logger = setup_logging()
     
@@ -89,11 +88,12 @@ def main():
     
     args = parse_command_line_args()
     audio = get_audio_source(config, args.audio, args.configxml, logger)
-
+    
+    hf_token = config.get('settings/hf_token')
     if audio:
         logger.info("Starting Transcription.")
         logger.info("CWD: " + os.getcwd())
-        model = Whisperx("small", [audio])  
+        model = Whisperx("small", [hf_token],[audio])  
         model.transcribe()
     else:
         logger.error("Cannot access audio file")
