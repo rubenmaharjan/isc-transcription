@@ -27,6 +27,7 @@ class Transcribe(ABC):
         self
 
         """
+        logger.info("Setting up transcription service...")
 
 
 

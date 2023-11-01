@@ -1,7 +1,9 @@
+
+
 import os
 import argparse
 from lxml import etree
-
+from src.transcribe.models.Whisper import Whisperx
 from datetime import datetime
 from src.utils.ISCLogWrapper import ISCLogWrapper, logging
 from src.transcribe.TranscribeFactory import TranscribeFactory
@@ -75,6 +77,9 @@ def validate_configxml(xml_file, xsd_file):
         print("XML document is not valid according to the schema.")
         print(e)
 
+
+
+
 def main():
     logger = setup_logging()
     
@@ -88,11 +93,11 @@ def main():
     if audio:
         logger.info("Starting Transcription.")
         logger.info("CWD: " + os.getcwd())
-        model = TranscribeFactory.load_class("Whisper")
-        model.setup(audio)
+        model = Whisperx("small", [audio])  
         model.transcribe()
     else:
         logger.error("Cannot access audio file")
 
+
 if __name__ == '__main__':
-    main()
+     main()

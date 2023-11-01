@@ -1,46 +1,25 @@
-from src.transcribe.models.Transcribe import Transcribe
-from whisper import load_model
-import logging
+import os
 from typing import List
+import whisperx
+from whisperx import load_model
+from whisperx.audio import load_audio
 
-#  get the logger
-logger = logging.getLogger(__name__)
-
-class Whisper(Transcribe):
-    """
-    A subclass of the Transcribe class that transcribes audio using the Whisper speech recognition library.
-    """
-
-    def setup(self, audio_files: List[str]) -> Transcribe:
-        """
-        Initializes the Whisper object with the specified model size, audio data, and output file path.
-
-        :param model_size: The size of the Whisper model to use for transcription.
-        :param audio_files: The list of audio files to transcribe.
-        :param model: The path of the file to write the transcription text to.
-
-        :return: self
-        """
-        # TODO Read from config
-        self.model_size = "tiny"
-        self.audio_files = audio_files 
-        self.model = load_model(self.model_size, in_memory=True)
-        return self
+class Whisperx:
+    def __init__(self, model_size: str, audio_files: List[str], batch_size: int = 16, compute_type: str = "int8"):
+        self.model_size = model_size
+        self.audio_files = audio_files
+        self.batch_size = batch_size
+        self.compute_type = compute_type
+        self.model = whisperx.load_model(self.model_size, device="cpu", compute_type=self.compute_type)
 
     def transcribe(self):
-        """
-        Transcribes the audio using the loaded Whisper model and writes the transcription to a file.
-
-        :return: None
-        """
-        logger.info(f"Loading {self.model_size} model")
         for audio in self.audio_files:
-            logger.info("Starting transcription")
-            result = self.model.transcribe(audio, fp16=False)
-            logger.info("Finished transcription")
+            waveform = load_audio(audio)
+            result = self.model.transcribe(waveform, batch_size=self.batch_size)
+            base_name = os.path.splitext(os.path.basename(audio))[0]
+            output_file_path = f"{base_name}.txt"
+            
+            with open(output_file_path, "w+") as output_file:
+                for segment in result["segments"]:
+                    output_file.write(f"{segment['start']} {segment['end']} {segment['text']}\n")
 
-            # TODO Use the utils to get the output file path
-            #logger.info(f"Writing transcription to file: {self.output_file_path}")
-            with open(audio.split('.')[0]+".txt", "w+") as output_file:
-                output_file.write(result['text'])
-            logger.info("Finished writing transcription to file")
