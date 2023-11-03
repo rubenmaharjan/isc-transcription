@@ -12,11 +12,11 @@
 <config>
     <library>whisper</library>
     <audiodir>./sample/Sample.mp3</audiodir>
-    <transcriptiondir>~/mnt/transcription</transcriptiondir>
+    <transcriptiondir>./transcriptiondir</transcriptiondir>
     <settings>
         <model>medium</model>
         <verbosity>true</verbosity>
-        <hf_token>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</hf_token>
+        <hf_token>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</hf_token>
     </settings>
     <extensions>['mp3', 'wav']</extensions>
 </config>

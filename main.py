@@ -1,15 +1,13 @@
-
-
 import os
 import argparse
 from lxml import etree
-from src.transcribe.models.Whisper import Whisperx
+from src.transcribe.models.WhisperxTranscriber import WhisperxTranscriber
 from datetime import datetime
 from src.utils.ISCLogWrapper import ISCLogWrapper, logging
 from src.transcribe.TranscribeFactory import TranscribeFactory
 from src.utils.TranscriptionConfig import TranscriptionConfig
 
-default_audio='audio/rec.wav'
+default_audio='sample/Sample.mp3'
 
 def setup_logging():
     isc_log_wrapper = ISCLogWrapper(
@@ -86,6 +84,7 @@ def main():
     path = os.path.join(path1, "config/dev_config.xml")
     config = TranscriptionConfig(path)
     
+    validate_configxml("config/dev_config.xml", "./config_validator.xsd")
     args = parse_command_line_args()
     audio = get_audio_source(config, args.audio, args.configxml, logger)
     
@@ -93,7 +92,7 @@ def main():
     if audio:
         logger.info("Starting Transcription.")
         logger.info("CWD: " + os.getcwd())
-        model = Whisperx("small", [hf_token],[audio])  
+        model = WhisperxTranscriber("small", hf_token, audio)  
         model.transcribe()
     else:
         logger.error("Cannot access audio file")

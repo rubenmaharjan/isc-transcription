@@ -10,6 +10,7 @@
             <xs:sequence>
               <xs:element name="model" type="xs:string"/>
               <xs:element name="verbosity" type="xs:boolean"/>
+              <xs:element name="hf_token" type="xs:string"/>
             </xs:sequence>
           </xs:complexType>
         </xs:element>

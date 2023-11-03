@@ -27,9 +27,6 @@ class Transcribe(ABC):
         self
 
         """
-        logger.info("Setting up transcription service...")
-
-
 
     @abstractmethod
     def transcribe(self):
