@@ -8,7 +8,7 @@
         <xs:element name="settings">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="model" type="xs:string"/>
+              <xs:element name="model_type" type="xs:string"/>
               <xs:element name="verbosity" type="xs:boolean"/>
               <xs:element name="hf_token" type="xs:string"/>
             </xs:sequence>

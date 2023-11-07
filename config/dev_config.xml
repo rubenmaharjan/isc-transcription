@@ -14,7 +14,7 @@
     <audiodir>./sample/Sample.mp3</audiodir>
     <transcriptiondir>./transcriptiondir</transcriptiondir>
     <settings>
-        <model>medium</model>
+        <model_type>medium</model_type>
         <verbosity>true</verbosity>
         <hf_token>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</hf_token>
     </settings>

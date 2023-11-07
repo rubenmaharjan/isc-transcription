@@ -3,7 +3,6 @@ import os
 
 from importlib import import_module
 from src.utils.IscFileSearch import IscFileSearch
-
 class TestIscFileSearch(unittest.TestCase):
     def setUp(self):
         """

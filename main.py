@@ -28,6 +28,10 @@ def parse_command_line_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--audio", help="Specify the input audio file")
     parser.add_argument("--configxml", help="Specify the input xml config file")
+
+    # new arguments
+    parser.add_argument("--model_type", help="Specify the model type for transcription")
+ 
     return parser.parse_args()
 
 def get_audio_source(config, cmd_audio, cmd_config, logger):
