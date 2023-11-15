@@ -2,16 +2,13 @@ import xml.etree.ElementTree as ET
 import logging
 import os
 
-
 logger = logging.getLogger()
 
 
 class TranscriptionConfig:
     """
-    A class for reading, editing, deleting, and creating XML configuration files 
+    A class for reading, editing, deleting, and creating XML configuration files
     for the transcription system.
-
-
     """
 
     def __init__(self, file_path):
@@ -21,35 +18,32 @@ class TranscriptionConfig:
         :param file_path: Path to the XML configuration file.
         """
         self.file_path = file_path
-        self.tree = None
-        self.root = None
-        self.config_data = self.load_config(file_path)
+        self.tree, self.root, self.config_data = self.load_config(file_path)
 
     def load_config(self, config_file):
         config_data = {}
+        tree, root = None, None
         try:
-            import xml.etree.ElementTree as ET
-            self.tree = ET.parse(config_file)
-            self.root = self.tree.getroot()
-            for child in self.root:
+            tree = ET.parse(config_file)
+            root = tree.getroot()
+            for child in root:
                 if child.tag == "settings":
                     for subchild in child:
                         config_data[subchild.tag] = subchild.text
                 else:
                     config_data[child.tag] = child.text
         except FileNotFoundError:
-            self.logger.error(f"Config file not found: {config_file}")
+            logger.error(f"Config file not found: {config_file}")
         except ET.ParseError:
-            self.logger.error(f"Error parsing config file: {config_file}")
+            logger.error(f"Error parsing config file: {config_file}")
         except Exception as e:
-            self.logger.error(f"Error loading config file: {config_file} - {str(e)}")
+            logger.error(f"Error loading config file: {config_file} - {str(e)}")
 
-        return config_data
+        return tree, root, config_data
 
     def get(self, key):
         """
         Get the value for the specified key in the configuration file.
-
         """
         try:
             return self.config_data.get(key)
@@ -68,29 +62,17 @@ class TranscriptionConfig:
         try:
             parts = key.split("/")
             if len(parts) == 1:
-                # If the key has no parent, update the text attribute of the root element
-                self.root.text = value
-                logger.info(f'Set value of root element to: {value}')
-            elif len(parts) > 1:
-                # Traverse the tree to find the element with the specified key
                 parent = self.root
-                for part in parts[:-1]:
-                    # Find the child element with the specified tag name
-                    child = parent.find(part)
-                    if child is None:
-                        # If the child element doesn't exist, return False
-                        logger.error(f"No such key: {key}")
-                        return False
-                    # Update the parent element to be the child element
-                    parent = child
-                # Update the text attribute of the element with the specified key
-                element = parent.find(parts[-1])
-                if element is None:
-                    # If the element doesn't exist, create a new one
-                    element = ET.Element(parts[-1])
-                    parent.append(element)
-                element.text = value
-                logger.info(f'Set value of key "{key}" to: {value}')
+            elif len(parts) > 1:
+                parent = self.root.find('/'.join(parts[:-1]))
+
+            element = parent.find(parts[-1]) if parent is not None else None
+            if element is None:
+                element = ET.Element(parts[-1])
+                parent.append(element)
+
+            element.text = value
+            logger.info(f'Set value of key "{key}" to: {value}')
             return True
         except Exception as e:
             logger.error(f'Error while setting element value: {e}')
@@ -99,8 +81,6 @@ class TranscriptionConfig:
     def get_all(self):
         """
         Get all key-value pairs in the configuration file.
-
-        :return: A dictionary containing all key-value pairs in the configuration file.
         """
         result = {}
         try:
@@ -112,8 +92,7 @@ class TranscriptionConfig:
                     result[child.tag] = child.text
             return result
         except Exception as e:
-            logger.error(
-                f'Error while getting all key-value pairs in configuration file: {e}')
+            logger.error(f'Error while getting all key-value pairs in configuration file: {e}')
             return False
 
     def delete_key(self, key):
@@ -125,26 +104,22 @@ class TranscriptionConfig:
         """
         try:
             if '/' in key:
-                # Split the key into a list of nested tags
                 nested_tags = key.split('/')
-                # Find the parent element of the key
                 parent = self.root.find('/'.join(nested_tags[:-1]))
-                # Find the element to be deleted
-                element = parent.find(nested_tags[-1])
-                # Remove the element
-                parent.remove(element)
+                element = parent.find(nested_tags[-1]) if parent is not None else None
             else:
-                # Find the element to be deleted
                 element = self.root.find(key)
-                # Remove the element
-                self.root.remove(element)
-            logger.critical(f'Key: {key} has been deleted.')
-            return True
-        except Exception as e:
-            logger.error(
-                f'Error while deleting key in configuration file: {str(e)}')
-            return False
 
+            if element is not None:
+                parent.remove(element)
+                logger.critical(f'Key: {key} has been deleted.')
+                return True
+
+            logger.error(f'No such key: {key}')
+            return False
+        except Exception as e:
+            logger.error(f'Error while deleting key in configuration file: {str(e)}')
+            return False
 
     def create_key(self, key, value):
         """
@@ -157,35 +132,20 @@ class TranscriptionConfig:
         try:
             parts = key.split("/")
             if len(parts) == 1:
-                # Create a new element with the specified key and value
-                element = ET.Element(key)
-                element.text = value
-                # Append the new element to the root element of the tree
-                self.root.append(element)
-                logger.info(f'Created element: {element}')
-            elif len(parts) > 1:
-                # Traverse the tree to find the parent element of the new key
                 parent = self.root
-                for part in parts[:-1]:
-                    # Find the child element with the specified tag name
-                    child = parent.find(part)
-                    if child is None:
-                        # If the child element doesn't exist, create a new one
-                        child = ET.Element(part)
-                        # Append the new child element to the parent element
-                        parent.append(child)
-                    # Update the parent element to be the child element
-                    parent = child
-                # Create a new element with the specified key and value
+            elif len(parts) > 1:
+                parent = self.root.find('/'.join(parts[:-1]))
+
+            element = parent.find(parts[-1]) if parent is not None else None
+            if element is None:
                 element = ET.Element(parts[-1])
-                element.text = value
-                # Append the new element to the parent element
                 parent.append(element)
-                logger.info(f'Created key: {key}')
+
+            element.text = value
+            logger.info(f'Created key: {key}')
             return True
         except Exception as e:
-            logger.error(
-                f"Failed to create key-value pair in configuration file: {e}")
+            logger.error(f"Failed to create key-value pair in configuration file: {e}")
             return False
 
     def set_settings(self, model=None, verbosity=None):
@@ -201,7 +161,7 @@ class TranscriptionConfig:
                 self.set("settings/model", model)
             if verbosity is not None:
                 self.set("settings/verbosity", str(verbosity).lower())
-
+            return True
         except Exception as e:
             logger.error(f'Error while setting settings: {e}')
             return False
@@ -209,7 +169,6 @@ class TranscriptionConfig:
     def save_changes(self):
         """
         Save any changes made to the XML configuration file.
-
         """
         try:
             logger.info("Saving configuration file...")
@@ -221,7 +180,6 @@ class TranscriptionConfig:
     def delete_file(self):
         """
         Delete the XML configuration file.
-
         """
         try:
             logger.info("Deleting configuration file...")
