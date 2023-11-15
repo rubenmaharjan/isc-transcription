@@ -102,8 +102,8 @@ def validate_configxml(xml_file, xsd_file):
 
 
 def main():
-    path1 = os.getcwd()
-    path = os.path.join(path1, "config/dev_config.xml")
+    audioPathPrefix = os.getcwd()
+    path = os.path.join(audioPathPrefix, "config/dev_config.xml")
     config = TranscriptionConfig(path)
 
     validate_configxml("config/dev_config.xml", "./config_validator.xsd")
