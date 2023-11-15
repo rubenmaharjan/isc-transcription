@@ -21,19 +21,38 @@ class TranscriptionConfig:
         :param file_path: Path to the XML configuration file.
         """
         self.file_path = file_path
-        # print('constructing TranscriptionConfig: file_path', file_path)
-        self.tree = ET.parse(file_path)
-        self.root = self.tree.getroot()
+        self.tree = None
+        self.root = None
+        self.config_data = self.load_config(file_path)
+
+    def load_config(self, config_file):
+        config_data = {}
+        try:
+            import xml.etree.ElementTree as ET
+            self.tree = ET.parse(config_file)
+            self.root = self.tree.getroot()
+            for child in self.root:
+                if child.tag == "settings":
+                    for subchild in child:
+                        config_data[subchild.tag] = subchild.text
+                else:
+                    config_data[child.tag] = child.text
+        except FileNotFoundError:
+            self.logger.error(f"Config file not found: {config_file}")
+        except ET.ParseError:
+            self.logger.error(f"Error parsing config file: {config_file}")
+        except Exception as e:
+            self.logger.error(f"Error loading config file: {config_file} - {str(e)}")
+
+        return config_data
 
     def get(self, key):
         """
         Get the value for the specified key in the configuration file.
 
         """
-        element = self.root.find(key)
         try:
-            logger.info(f'{element}')
-            return element.text
+            return self.config_data.get(key)
         except Exception as e:
             logger.error(f'Could not find element in configuration file: {e}')
             return None
