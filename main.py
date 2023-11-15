@@ -9,7 +9,6 @@ from src.utils.TranscriptionConfig import TranscriptionConfig
 
 default_audio = 'sample/Sample.mp3'
 
-
 def setup_logging():
     isc_log_wrapper = ISCLogWrapper(
         console_log_output="stdout",
