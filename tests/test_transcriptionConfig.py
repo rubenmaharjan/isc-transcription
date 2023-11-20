@@ -20,15 +20,15 @@ class TestTranscriptionConfig(unittest.TestCase):
         self.assertIsNone(self.config.get("nonexistent_key"))
 
     def test_set_existing_key(self):
-        self.assertTrue(self.config.set("key1", "new_value"))
+        self.assertTrue(self.config.set_param("key1", "new_value"))
         self.assertEqual(self.config.get("key1"), "new_value")
 
     def test_set_new_key(self):
-        self.assertTrue(self.config.set("new_key", "new_value"))
+        self.assertTrue(self.config.set_param("new_key", "new_value"))
         self.assertEqual(self.config.get("new_key"), "new_value")
 
     def test_set_nonexistent_key(self):
-        self.assertFalse(self.config.set("nonexistent_key", "new_value"))
+        self.assertFalse(self.config.set_param("nonexistent_key", "new_value"))
 
     def test_get_all(self):
         expected = {"key1": "value1", "key2": "value2"}
