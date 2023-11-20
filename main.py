@@ -7,7 +7,9 @@ from src.utils.ISCLogWrapper import ISCLogWrapper, logging
 from src.transcribe.TranscribeFactory import TranscribeFactory
 from src.utils.TranscriptionConfig import TranscriptionConfig
 
-DEFAULT_AUDIO = 'sample/Sample.mp3'
+# todo add default audio
+DEFAULT_AUDIO = None
+DEFAULT_XML_PATH = "./config/dev_config.xml"
 
 
 def setup_logging():
@@ -45,15 +47,22 @@ def parse_command_line_args():
     - Parsed command line arguments.
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("--audio", help="Specify the input audio file", default=None)
-    parser.add_argument("--configxml", help="Specify the input xml config file")
+    parser.add_argument(
+        "--audio", help="Specify the input audio file", default=None)
+    parser.add_argument(
+        "--configxml", help="Specify the input xml config file", default=os.path.abspath(f"{os.getcwd()}/{DEFAULT_XML_PATH}"))
 
     # new arguments
-    parser.add_argument("--model_type", help="Specify the model type for transcription")
-    parser.add_argument("--audiodir", help="Specify the directory of audio to transcribe")
-    parser.add_argument("--transcriptiondir", help="Specify the directory to store transcriptions")
-    parser.add_argument("--hf_token", help="Specify the user token needed for diarization")
-    parser.add_argument("--extensions", help="List of audio extensions in audiodir")
+    parser.add_argument(
+        "--model_type", help="Specify the model type for transcription")
+    parser.add_argument(
+        "--audiodir", help="Specify the directory of audio to transcribe")
+    parser.add_argument("--transcriptiondir",
+                        help="Specify the directory to store transcriptions")
+    parser.add_argument(
+        "--hf_token", help="Specify the user token needed for diarization")
+    parser.add_argument(
+        "--extensions", help="List of audio extensions in audiodir")
 
     return parser.parse_args()
 
@@ -73,13 +82,15 @@ def get_config_value(parsed_args, key):
         logger.info("Using configuration from parsed command line arguments.")
 
         if not key:
-            logger.error("Argument name must be specified to access parsed argument value.")
+            logger.error(
+                "Argument name must be specified to access parsed argument value.")
             return None
 
         try:
-            parsed_key_value = parsed_args[key]
-            logger.info(f'Parsed value of {key} is {parsed_key_value}')
-            return parsed_key_value
+            if getattr(parsed_args,key) != None:
+                parsed_key_value = getattr(parsed_args,key)
+                logger.info(f'Parsed value of {key} is {parsed_key_value}')
+                return parsed_key_value
         except KeyError as e:
             logger.error(f"{key} not found in parsed arguments. Error: {e}")
 
@@ -88,27 +99,33 @@ def get_config_value(parsed_args, key):
                 parsed_configXML_path = parsed_args.configXML
 
                 if not parsed_configXML_path.endswith('.xml'):
-                    logger.error('Wrong file extension. Please provide an XML config file.')
+                    logger.error(
+                        'Wrong file extension. Please provide an XML config file.')
                 else:
-                    logger.info("Using configuration from parsed XML file in command line.")
-                    validate_configxml(parsed_configXML_path, "./config_validator.xsd")
-                    parsed_config_XML = TranscriptionConfig(parsed_configXML_path)
+                    logger.info(
+                        "Using configuration from parsed XML file in command line.")
+                    validate_configxml(parsed_configXML_path,
+                                       "./config_validator.xsd")
+                    parsed_config_XML = TranscriptionConfig(
+                        parsed_configXML_path)
                     return parsed_config_XML.get(key)
 
         except AttributeError as e:
-            logger.error(f"configXML not found in parsed arguments. Please provide a configuration file. Error: {e}")
+            logger.error(
+                f"configXML not found in parsed arguments. Please provide a configuration file. Error: {e}")
 
-    try:
-        logger.info("Using default configuration set from the codebase.")
+    # try:
+    #     logger.info("Using default configuration set from the codebase.")
 
-        audioPathPrefix = os.getcwd()
-        path = os.path.join(audioPathPrefix, "config/dev_config.xml")
-        config = TranscriptionConfig(path)
-        validate_configxml(path, "./config_validator.xsd")
-        return config.get(key)
-    except Exception as e:
-        logger.error(f"No valid config specified. Transcription cannot proceed. Error: {e}")
-        return None
+    #     audioPathPrefix = os.getcwd()
+    #     path = os.path.join(audioPathPrefix, DEFAULT_XML_PATH)
+    #     config = TranscriptionConfig(path)
+    #     validate_configxml(path, "./config_validator.xsd")
+    #     return config.get(key)
+    # except Exception as e:
+    #     logger.error(
+    #         f"No valid config specified. Transcription cannot proceed. Error: {e}")
+    #     return None
 
 
 def validate_configxml(xml_file, xsd_file):
@@ -132,14 +149,16 @@ def validate_configxml(xml_file, xsd_file):
         schema.assertValid(xml_doc)
         logger.info("XML document is valid according to the schema.")
     except Exception as e:
-        logger.error("XML document is not valid according to the schema.", e)
+        logger.critical("XML document is not valid according to the schema.", e)
 
 
 def main():
+    #todo: populate configuration variables with the default values
     args = parse_command_line_args()
-    get_cmd_args = None if (args.audio is None or args.configxml is None) else args
+    # todo:Check for configXML argument
+    get_cmd_args = args if args.audio or args.configxml else None 
     audio = get_config_value(get_cmd_args, 'audiodir')
-    hf_token = get_config_value(get_cmd_args, 'hftoken')
+    hf_token = get_config_value(get_cmd_args, 'hf_token')
     logger.info(f"AUDIO: {audio} and HFToken: {hf_token}")
 
     # if audio and hf_token:
