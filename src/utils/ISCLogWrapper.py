@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import glob
+from config.DEFAULTS import DEFAULT_LOGGING_CONFIG
 
 # Define constants used for the log line format and date format
 LOG_LINE_TEMPLATE="%(color_on)s[%(asctime)s.%(msecs)03d] [%(threadName)s] [%(levelname)-8s] [%(filename)s:%(lineno)d] %(message)s%(color_off)s"
@@ -37,14 +38,14 @@ class LogFormatter(logging.Formatter):
 class ISCLogWrapper:
 
     # The constructor takes several arguments that configure logging
-    def __init__(self, console_log_output, console_log_level, console_log_color, logfile_file, logfile_path, logfile_log_level, logfile_log_color):
-        self.console_log_output = console_log_output # The output to write the console logs to (stdout or stderr)
-        self.console_log_level = console_log_level # The minimum logging level to log to the console (e.g., INFO, WARNING, etc.)
-        self.console_log_color = console_log_color # A boolean value indicating whether the console log should be colorized
-        self.logfile_file = logfile_file # The filename to write the logs to
-        self.logfile_path = logfile_path # The directory path to write the logs to
-        self.logfile_log_level = logfile_log_level # The minimum logging level to log to the file
-        self.logfile_log_color = logfile_log_color # A boolean value indicating whether the file log should be colorized
+    def __init__(self, default_dict=DEFAULT_LOGGING_CONFIG):
+        self.console_log_output = default_dict['console_log_output'] # The output to write the console logs to (stdout or stderr)
+        self.console_log_level = default_dict['console_log_level'] # The minimum logging level to log to the console (e.g., INFO, WARNING, etc.)
+        self.console_log_color = default_dict['console_log_color'] # A boolean value indicating whether the console log should be colorized
+        self.logfile_file = default_dict['logfile_file'] # The filename to write the logs to
+        self.logfile_path = default_dict['logfile_path'] # The directory path to write the logs to
+        self.logfile_log_level = default_dict['logfile_log_level'] # The minimum logging level to log to the file
+        self.logfile_log_color = default_dict['logfile_log_color'] # A boolean value indicating whether the file log should be colorized
 
     # Set up logging using the configuration values passed to the constructor
 

@@ -18,7 +18,7 @@ DEFAULT_LOGGING_CONFIG = {
     'logfile_path': "logs"
 }
 DEFAULT_XML_PATH = "./config/dev_config.xml"
-DEFAULT_CONFIGS = {
+DEFAULT_WHISPER_CONFIGS = {
         'library': 'whisper',
         'audiodir': './sample/Sample.mp3',
         'transcriptiondir': './transcriptiondir',

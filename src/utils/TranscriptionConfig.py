@@ -1,36 +1,60 @@
-import os
+# ***********************************************
+# imports
+# ***********************************************
+
+# lxml.etree - for XML parsing and validation
+#   parse - parse an XML document into an element tree
+#   XMLSchema - validate an XML document against XML Schema
+
+# Custom packages for the transcription model and utilities
+# src.utils - custom package for the transcription model
+#   parse_command_line_args - Parse command line arguments and return the parsed arguments.
+#   validate_configxml - Validate an XML file against an XSD schema.
+
+# logging - custom wrapper for logging functionalities
+#   logging.getLogger - method to return a logger instance with the specified name
+
+# config.DEFAULTS - custom configuration handler for transcription settings
+
 from lxml.etree import ElementTree as ET
 import src.utils.helperFunctions as helperFunctions
 import logging
 from config.DEFAULTS import *
 
+# ----------------------------------------------------------------
+#  auxiliary functions
+# ----------------------------------------------------------------
+
+err_to_str = lambda e: '' if str(e) is None else str(e)
+
+# ----------------------------------------------------------------
+#  main module
+# ----------------------------------------------------------------
+
 logger = logging.getLogger()
 
-def extract_XML_params(config_file=DEFAULT_XML_PATH):
+def configure_whisperX_operation(config_file=DEFAULT_XML_PATH, fail_if_missing=True):
     """
     Extract parameters from the XML configuration file if path is specified otherwise 
     populate with the default XML path over the default configuration values.
 
     Parameters:
     - config_file: Path to the XML file.
+    Note: config_file assumed to have all top-level elements
     """
-    config_data = DEFAULT_CONFIGS
-    tree, root = None, None
+    config_data = DEFAULT_WHISPER_CONFIGS
     try:
-        tree = ET.parse(config_file)
-        root = tree.getroot()
-        for child in root:
-            if child.tag == "settings":
-                for subchild in child:
-                    config_data[subchild.tag] = subchild.text
-            else:
-                config_data[child.tag] = child.text
+        for child in ET.parse(config_file).getroot():
+            config_data[child.tag] = child.text
     except FileNotFoundError:
-        logger.error(f"Config file not found: {config_file}")
+        if fail_if_missing:
+            logger.error(f"Config file not found: {config_file}")
+        else:
+            logger.warning(f"Config file not found: {config_file}")
     except Exception as e:
-        logger.error(f"Error loading config file: {config_file} - {str(e)}")
+        logger.error(f"Error loading config file: {config_file} - {err_to_str(e)}")
 
-    return tree, root, config_data
+    return config_data
 
 class TranscriptionConfig:
     """
@@ -45,7 +69,7 @@ class TranscriptionConfig:
         :param file_path: Path to the XML configuration file.
         """
         self.file_path = DEFAULT_XML_PATH
-        self.tree, self.root, self.config_data = extract_XML_params(DEFAULT_XML_PATH) # populate the configuration with default values
+        self.config_data = configure_whisperX_operation(DEFAULT_XML_PATH, False) # populate the configuration with default values
     
     def set_config_values(self, config_values):
         try:
@@ -83,7 +107,7 @@ class TranscriptionConfig:
                     self.set_config_values(parsed_config_XML)
 
             except AttributeError as e:
-                logger.error(f"The 'configXML' attribute not found in the parsed arguments. Please provide a valid configuration file. Error: {e}")
+                logger.error(f"The 'configXML' attribute not found in the parsed arguments. Please provide a valid configuration file. Error: {err_to_str(e)}")
 
         # If parsed_args is None or the key is not found in parsed_args, try loading from the specified self.file_path
         try:
@@ -93,7 +117,7 @@ class TranscriptionConfig:
             self.set_config_values(config_data)
 
         except Exception as e:
-            logger.warning(f"Using default configuration due to an error loading the configuration from the file: {self.file_path}. Error: {e}")
+            logger.warning(f"Using default configuration due to an error loading the configuration from the file: {self.file_path}. Error: {err_to_str(e)}")
 
     def get(self, key):
         """
@@ -172,7 +196,7 @@ class TranscriptionConfig:
             logger.error(f'No such key: {key}')
             return False
         except Exception as e:
-            logger.error(f'Error while deleting key in configuration file: {str(e)}')
+            logger.error(f'Error while deleting key in configuration file: {err_to_str(e)}')
             return False
 
     def create_key(self, key, value):
@@ -199,45 +223,5 @@ class TranscriptionConfig:
             logger.info(f'Created key: {key}')
             return True
         except Exception as e:
-            logger.error(f"Failed to create key-value pair in configuration file: {e}")
+            logger.error(f"Failed to create key-value pair in configuration file: {err_to_str(e)}")
             return False
-
-    def set_settings(self, model=None, verbosity=None):
-        """
-        Set multiple settings at once.
-
-        :param model: The new value of the model type.
-        :param verbosity: The new value of the verbosity setting.
-        :return: True if all settings were successfully set, False otherwise.
-        """
-        try:
-            if model is not None:
-                self.set_param("model", model)
-            if verbosity is not None:
-                self.set_param("verbosity", str(verbosity).lower())
-            return True
-        except Exception as e:
-            logger.error(f'Error while setting settings: {e}')
-            return False
-
-    def save_changes(self):
-        """
-        Save any changes made to the XML configuration file.
-        """
-        try:
-            logger.info("Saving configuration file...")
-            self.tree.write(self.file_path)
-            logger.info("Configuration file saved.")
-        except Exception as e:
-            logger.error(f'Error while saving configuration file:{e}')
-
-    def delete_file(self):
-        """
-        Delete the XML configuration file.
-        """
-        try:
-            logger.info("Deleting configuration file...")
-            os.remove(self.file_path)
-            logger.info("Configuration file deleted.")
-        except Exception as e:
-            logger.error(f'Error while deleting configuration file: {e}')
