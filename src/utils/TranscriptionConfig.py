@@ -1,25 +1,51 @@
+# *************************************************************************************************************************
+#   TranscriptionConfig.py
+#       This module provides classes and functions to manage the configuration for an audio transcription system.
+#       It facilitates the handling of XML configuration files, including reading, editing, and validating against a schema.
+# -------------------------------------------------------------------------------------------------------------------
+#   Usage:
+#       The module provides an interface for interacting with the transcription configuration through the
+#       TranscriptionConfig class. Functions are also available for parsing command-line arguments and for
+#       validating XML configuration files.
+#
+#       Parameters:
+#           Various parameters can be defined in an XML configuration file, which are then parsed and applied to
+#           the transcription system. Command-line arguments can override configuration file settings.
+#
+#       Outputs:
+#           The TranscriptionConfig class provides methods to retrieve and set configuration values, and to
+#           create or delete configuration keys.
+#
+#   Design Notes:
+#   -.  The module makes use of lxml for XML parsing and validation.
+#   -.  Custom utility functions are used for command-line parsing and XML validation.
+#   -.  The logging module is used to provide feedback and error reporting.
+# ---------------------------------------------------------------------------------------------------------------------
+#   last updated: November 2023
+#   authors: Ruben Maharjan, Bigya Bajarcharya, Mofeoluwa Jide-Jegede
+# *************************************************************************************************************************
 # ***********************************************
 # imports
 # ***********************************************
 
-# lxml.etree - for XML parsing and validation
-#   parse - parse an XML document into an element tree
-#   XMLSchema - validate an XML document against XML Schema
+# lxml.etree - provides XML parsing and validation functionality
+#   parse - function to parse an XML document into an element tree
+#   XMLSchema - class to validate an XML document against XML Schema
 
-# Custom packages for the transcription model and utilities
-# src.utils - custom package for the transcription model
-#   parse_command_line_args - Parse command line arguments and return the parsed arguments.
-#   validate_configxml - Validate an XML file against an XSD schema.
+# src.utils - custom package for utility functions related to the transcription model
+#   helperFunctions - module with functions for command-line argument parsing and XML file validation
 
-# logging - custom wrapper for logging functionalities
-#   logging.getLogger - method to return a logger instance with the specified name
+# logging - module to provide logging functionalities
+#   getLogger - function to return a logger instance
 
-# config.DEFAULTS - custom configuration handler for transcription settings
+# config.DEFAULTS - module to handle default configuration settings for the transcription system
+#   DEFAULT_* - constants defining default values for configuration settings
 
 from lxml.etree import ElementTree as ET
 import src.utils.helperFunctions as helperFunctions
 import logging
 from config.DEFAULTS import *
+
 
 # ----------------------------------------------------------------
 #  auxiliary functions

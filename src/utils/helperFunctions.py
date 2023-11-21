@@ -1,8 +1,48 @@
+# *************************************************************************************************************************
+#   helperFunctions.py
+#       This module provides command-line parsing utilities for an audio transcription application. It leverages the argparse
+#       library to parse command-line options and validates XML configuration files against a predefined schema using lxml.
+# -------------------------------------------------------------------------------------------------------------------
+#   Usage:
+#       Call parse_command_line_args() to parse and retrieve command-line arguments.
+#       Use validate_configxml(xml_file, xsd_file) to validate an XML configuration against an XSD schema.
+#
+#       Parameters:
+#           Various command-line parameters are supported for specifying audio files, configuration XML, model type,
+#           directories for audio files and transcriptions, user tokens for diarization, and allowed file extensions.
+#
+#       Outputs:
+#           Command-line parsing results in a namespace of parsed arguments.
+#           XML validation outputs log messages indicating validity or errors.
+#
+#   Design Notes:
+#   -.  The module is designed to be used as a utility in a larger audio transcription application.
+#   -.  Logging is configured to provide info and critical feedback for the operations performed.
+# ---------------------------------------------------------------------------------------------------------------------
+#   last updated: November 2023
+#   authors: Ruben Maharjan, Bigya Bajarcharya, Mofeoluwa Jide-Jegede
+# *************************************************************************************************************************
+# ***********************************************
+# imports
+# ***********************************************
+
+# argparse - command-line parsing library
+#    ArgumentParser - class to parse command-line options
+
+# lxml.etree - XML processing library
+#    etree - class for XML document parsing and validation
+
+# logging - logging library
+#    getLogger - function to get a logging instance
+
+# config.DEFAULTS - module with default configuration constants
+#    DEFAULT_SCHEMA_FILE, DEFAULT_TRANSCRIPTION_DIR, DEFAULT_FILE_EXTENSIONS - constants defining default values
 
 import argparse
 from lxml import etree
 import logging
 from config.DEFAULTS import *
+
 
 logger = logging.getLogger()
 

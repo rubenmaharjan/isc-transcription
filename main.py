@@ -67,20 +67,41 @@ def setup_logging():
 logger = setup_logging()
 
 def main():
-    config=TranscriptionConfig()
+    config = TranscriptionConfig()
 
-    audio = config.get('audiodir')
+    # Get the audio path which could be a directory or a file
+    audio_path = config.get('audiodir')
     hf_token = config.get('hf_token')
-    logger.info(f"AUDIO: {audio} and HFToken: {hf_token}")
+    transcription_dir = config.get('transcription_dir')
 
-    if audio and hf_token:
-        logger.info("Starting Transcription.")
-        logger.info("CWD: " + os.getcwd())
-        model = WhisperxTranscriber("small", hf_token, audio)
-        model.transcribe()
+    
+    # Initialize a list to store audio file paths
+    audio_files = []
+
+    # Check if the audio path is a directory
+    if os.path.isdir(audio_path):
+        # Use IscFileSearch to get all audio files in the directory
+        file_search = IscFileSearch(audio_path)
+        audio_files = file_search.traverse_directory()  # Use the traverse_directory method if it's a directory
+    elif os.path.isfile(audio_path):
+        # If it's a single file, append it to the list
+        audio_files.append(audio_path)
     else:
-        logger.error("Config values not set correctly")
+        logger.error("The specified audio path is neither a file nor a directory.")
+        return  # Exit if the path is invalid
 
+    if not audio_files:
+        logger.error("No audio files found in the specified path.")
+        return  # Exit if no audio files are found
+
+    if hf_token:
+        for audio in audio_files:
+            logger.info(f"Starting transcription for {audio}")
+            # Instantiate the WhisperxTranscriber model with the audio file
+            model = WhisperxTranscriber(model_size="small", hf_token=hf_token, audio_files=audio, output_dir=transcription_dir)
+            model.transcribe()  # Transcribe the audio file
+    else:
+        logger.error("HF Token not provided.")
 
 if __name__ == '__main__':
     main()
