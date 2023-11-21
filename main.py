@@ -47,6 +47,7 @@ import os
 from src.transcribe.models.WhisperxTranscriber import WhisperxTranscriber
 from src.utils.ISCLogWrapper import ISCLogWrapper, logging
 from src.utils.TranscriptionConfig import TranscriptionConfig
+from src.utils.IscFileSearch import IscFileSearch 
 
 def setup_logging():
     """
@@ -82,7 +83,9 @@ def main():
     if os.path.isdir(audio_path):
         # Use IscFileSearch to get all audio files in the directory
         file_search = IscFileSearch(audio_path)
-        audio_files = file_search.traverse_directory()  # Use the traverse_directory method if it's a directory
+        
+        # Use the traverse_directory method if it's a directory
+        audio_files = file_search.traverse_directory()  
     elif os.path.isfile(audio_path):
         # If it's a single file, append it to the list
         audio_files.append(audio_path)
