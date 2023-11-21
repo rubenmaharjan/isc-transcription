@@ -1,7 +1,53 @@
+# *************************************************************************************************************************
+#   ISCLogWrapper.py
+#       This module defines a wrapper for the Python logging module, providing a convenient setup for both console and 
+#       file logging with optional colorized output. It is configurable via a dictionary of default values and supports 
+#       custom log formats and date formats.
+# -------------------------------------------------------------------------------------------------------------------
+#   Usage:
+#       The ISCLogWrapper class is used to configure and initialize logging with predefined settings. It supports
+#       customization of console and file log levels, output destinations, and whether to use color in output.
+#
+#       Parameters:
+#           default_dict - A dictionary of default logging configurations including log levels, file paths, and colorization preferences.
+#
+#       Outputs:
+#           Logging output to console and/or to a specified log file, with an optional colorized format for better readability.
+#
+#   Design Notes:
+#   -.  LogFormatter is a custom formatter class that extends logging.Formatter to add color support.
+#   -.  ISCLogWrapper sets up logging according to the configuration provided and applies the LogFormatter.
+# ---------------------------------------------------------------------------------------------------------------------
+#   last updated: November 2023
+#   authors: Ruben Maharjan, Bigya Bajarcharya, Mofeoluwa Jide-Jegede
+# *************************************************************************************************************************
+# ***********************************************
+# imports
+# ***********************************************
+
+# os - provides a portable way of using operating system dependent functionality
+#    os.path.join - join one or more path components intelligently
+
+# sys - provides access to some variables used or maintained by the interpreter
+#    sys.stdout, sys.stderr - file objects used by the print and exception calls to write their output
+
+# logging - provides a flexible framework for emitting log messages from Python programs
+#    logging.getLogger - return a logger with the specified name
+#    logging.Formatter - class which formats logging records
+#    logging.StreamHandler - sends logging output to streams like stdout or stderr
+#    logging.FileHandler - sends logging output to a disk file
+
+# glob - finds all the pathnames matching a specified pattern according to the rules used by the Unix shell
+# No direct glob usage in the imports section
+
+# config.DEFAULTS - module containing default configuration values for the logging setup
+#    DEFAULT_LOGGING_CONFIG - a dictionary containing the default logging configuration settings
+
 import os
 import sys
 import logging
 import glob
+from config.DEFAULTS import DEFAULT_LOGGING_CONFIG
 
 # Define constants used for the log line format and date format
 LOG_LINE_TEMPLATE="%(color_on)s[%(asctime)s.%(msecs)03d] [%(threadName)s] [%(levelname)-8s] [%(filename)s:%(lineno)d] %(message)s%(color_off)s"
@@ -37,14 +83,14 @@ class LogFormatter(logging.Formatter):
 class ISCLogWrapper:
 
     # The constructor takes several arguments that configure logging
-    def __init__(self, console_log_output, console_log_level, console_log_color, logfile_file, logfile_path, logfile_log_level, logfile_log_color):
-        self.console_log_output = console_log_output # The output to write the console logs to (stdout or stderr)
-        self.console_log_level = console_log_level # The minimum logging level to log to the console (e.g., INFO, WARNING, etc.)
-        self.console_log_color = console_log_color # A boolean value indicating whether the console log should be colorized
-        self.logfile_file = logfile_file # The filename to write the logs to
-        self.logfile_path = logfile_path # The directory path to write the logs to
-        self.logfile_log_level = logfile_log_level # The minimum logging level to log to the file
-        self.logfile_log_color = logfile_log_color # A boolean value indicating whether the file log should be colorized
+    def __init__(self, default_dict=DEFAULT_LOGGING_CONFIG):
+        self.console_log_output = default_dict['console_log_output'] # The output to write the console logs to (stdout or stderr)
+        self.console_log_level = default_dict['console_log_level'] # The minimum logging level to log to the console (e.g., INFO, WARNING, etc.)
+        self.console_log_color = default_dict['console_log_color'] # A boolean value indicating whether the console log should be colorized
+        self.logfile_file = default_dict['logfile_file'] # The filename to write the logs to
+        self.logfile_path = default_dict['logfile_path'] # The directory path to write the logs to
+        self.logfile_log_level = default_dict['logfile_log_level'] # The minimum logging level to log to the file
+        self.logfile_log_color = default_dict['logfile_log_color'] # A boolean value indicating whether the file log should be colorized
 
     # Set up logging using the configuration values passed to the constructor
 

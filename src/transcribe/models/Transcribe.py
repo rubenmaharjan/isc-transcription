@@ -28,8 +28,6 @@ class Transcribe(ABC):
 
         """
 
-
-
     @abstractmethod
     def transcribe(self):
         """

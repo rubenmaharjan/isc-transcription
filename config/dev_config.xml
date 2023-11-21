@@ -1,0 +1,9 @@
+<config>
+    <library>whisper</library>
+    <audiodir>./sample/Sample.mp3</audiodir>
+    <transcriptiondir>./transcriptiondir</transcriptiondir>
+    <model_type>medium</model_type>
+    <verbosity>true</verbosity>
+    <hf_token>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</hf_token>
+    <extensions>['mp3', 'wav']</extensions>
+</config>
