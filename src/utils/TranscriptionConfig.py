@@ -126,7 +126,7 @@ class TranscriptionConfig:
         try:
             return self.config_data.get(key)
         except Exception as e:
-            logger.error(f'Could not find element in configuration file: {e}')
+            logger.error(f'Could not find element in configuration file: {err_to_str(e)}')
             return None
 
     def set_param(self, key, value):
@@ -153,7 +153,7 @@ class TranscriptionConfig:
             logger.info(f'Set value of key "{key}" to: {value}')
             return True
         except Exception as e:
-            logger.error(f'Error while setting element value: {e}')
+            logger.error(f'Error while setting element value: {err_to_str(e)}')
             return False
 
     def get_all(self):
@@ -170,7 +170,7 @@ class TranscriptionConfig:
                     result[child.tag] = child.text
             return result
         except Exception as e:
-            logger.error(f'Error while getting all key-value pairs in configuration file: {e}')
+            logger.error(f'Error while getting all key-value pairs in configuration file: {err_to_str(e)}')
             return False
 
     def delete_key(self, key):
