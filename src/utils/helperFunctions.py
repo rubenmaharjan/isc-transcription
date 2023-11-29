@@ -1,14 +1,14 @@
 # *************************************************************************************************************************
 #   helperFunctions.py
-#       This module provides command-line parsing utilities for an audio transcription application. It leverages the argparse
-#       library to parse command-line options and validates XML configuration files against a predefined schema using lxml.
+#       Provide command-line parsing for an audio transcription application.
+#       Validate XML configuration files against a predefined schema using lxml.
 # -------------------------------------------------------------------------------------------------------------------
 #   Usage:
 #       Call parse_command_line_args() to parse and retrieve command-line arguments.
 #       Use validate_configxml(xml_file, xsd_file) to validate an XML configuration against an XSD schema.
 #
 #       Parameters:
-#           Various command-line parameters are supported for specifying audio files, configuration XML, model type,
+#           Command-line parameters are supported for specifying audio files, configuration XML, model type,
 #           directories for audio files and transcriptions, user tokens for diarization, and allowed file extensions.
 #
 #       Outputs:
@@ -20,74 +20,94 @@
 #   -.  Logging is configured to provide info and critical feedback for the operations performed.
 # ---------------------------------------------------------------------------------------------------------------------
 #   last updated: November 2023
-#   authors: Ruben Maharjan, Bigya Bajarcharya, Mofeoluwa Jide-Jegede
+#   authors: Ruben Maharjan, Bigya Bajarcharya, Mofeoluwa Jide-Jegede, Phil Pfeiffer
 # *************************************************************************************************************************
+
 # ***********************************************
 # imports
 # ***********************************************
 
 # argparse - command-line parsing library
 #    ArgumentParser - class to parse command-line options
-
+# config.DEFAULTS - module with default configuration constants
+#    DEFAULT_SCHEMA_FILE, DEFAULT_TRANSCRIPTION_DIR, DEFAULT_FILE_EXTENSIONS - constants defining default values
 # lxml.etree - XML processing library
 #    etree - class for XML document parsing and validation
-
 # logging - logging library
 #    getLogger - function to get a logging instance
 
-# config.DEFAULTS - module with default configuration constants
-#    DEFAULT_SCHEMA_FILE, DEFAULT_TRANSCRIPTION_DIR, DEFAULT_FILE_EXTENSIONS - constants defining default values
-
 import argparse
+from config.DEFAULTS import DEFAULT_AUDIO, DEFAULT_AUDIO_FILE_EXTENSIONS, DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_SCHEMA
 from lxml import etree
-import logging
-from config.DEFAULTS import *
+# import logging
+
+# logger = logging.getLogger()
+
+# ***********************************************
+#  auxiliary functions
+# ***********************************************
 
 
-logger = logging.getLogger()
+def err_to_str(e): return '' if str(e) is None else str(e)
+
+
+# ***********************************************
+#  helper functions proper
+# ***********************************************
+
+# =========================================================================================
+#    Parse command line arguments and return the parsed arguments.
+#   Returns:
+#    - Parsed command line arguments as attributes named by the add_argument 'dest' parameters
+#
+#   Design notes:
+#   -.  Defaults for parameters with unspecified defaults managed in the modules that use these parameters
+# =========================================================================================
 
 def parse_command_line_args():
-    """
-    Parse command line arguments and return the parsed arguments.
-
-    Returns:
-    - Parsed command line arguments.
-    """
-    parser = argparse.ArgumentParser(description="Process command-line arguments for audio transcription.")
-    parser.add_argument("-a", "--audio", help="Specify the input audio file")
-    parser.add_argument("-cx", "--configxml", help="Specify the input xml config file", default=DEFAULT_SCHEMA_FILE)
-    parser.add_argument("-mt", "--model_type", help="Specify the model type for transcription", default='base')
-    parser.add_argument("-ad", "--audiodir", help="Specify the directory of audio to transcribe", default=DEFAULT_TRANSCRIPTION_DIR)
-    parser.add_argument("-td", "--transcription_dir", help="Specify the directory to store transcriptions", default=DEFAULT_TRANSCRIPTION_DIR)
-    parser.add_argument("-ht", "--hf_token", help="Specify the user token needed for diarization")
-    parser.add_argument("-e", "--extensions", nargs='+', help="List of audio extensions in audiodir", default=DEFAULT_FILE_EXTENSIONS)
+    parser = argparse.ArgumentParser(
+        description="Process command-line arguments for audio transcription.")
+    #
+    parser.add_argument("-au", "--audio", help="The input audio file or file directory", dest='audio', default=DEFAULT_AUDIO)
+    parser.add_argument("-cx", "--configxml", help="An alternative xml config file", dest='configxml')
+    parser.add_argument("-dv", "--device", help="Hardware device for diarization", dest='device')
+    parser.add_argument("-ed", "--enable_diarization", help="If true, diarize output after transcription", dest="diarize", default=False)
+    parser.add_argument("-ex", "--extensions", nargs='+', help="List of audio extensions in audiodir", dest='extensions', default=DEFAULT_AUDIO_FILE_EXTENSIONS)
+    parser.add_argument("-ht", "--hf_token", help="The user token needed for diarization", dest="hf_token")
+    parser.add_argument("-lf", "--logfile", help="The file used to log application output", dest="logfile")
+    parser.add_argument("-mt", "--model_type", help="The model type for transcription", dest="model_type")
+    parser.add_argument("-td", "--transcription_dir", help="The directory to store transcriptions", dest="transcriptionsdir")
+    
     return parser.parse_args()
 
 
-def validate_configxml(xml_file, xsd_file):
+def validate_configxml(logger, xml_file=DEFAULT_CONFIG_FILE, xsd_schema=DEFAULT_CONFIG_FILE_SCHEMA):
     """
     Validate an XML file against an XSD schema.
 
     Parameters:
+      logger:  log object for logging routine status
     - xml_file: Path to the XML file.
     - xsd_file: Path to the XSD schema file.
     """
     # Load the XML file
+# TODO I think you need to check for a parse error here 
     xml_doc = etree.parse(xml_file)
 
     # Load the XML schema
-    schema = etree.XMLSchema(file=xsd_file)
+    schema = etree.XMLSchema(file=xsd_schema)
 
     logger.info('Validating to check if the xml meets schema requirements')
 
     # Validate the XML document against the schema
     try:
         schema.assertValid(xml_doc)
-        logger.info("XML document is valid according to the schema.")
+        logger.info(
+            f"XML document ({xml_doc}) is valid according to the schema ({xsd_schema}).")
     except etree.XMLSchemaParseError as xspe:
-        logger.critical("XML Schema is not valid: {}".format(xspe))
+        logger.critical(f"XML Schema is not valid: {xspe}")
     except etree.DocumentInvalid as di:
-        logger.critical("XML document is not valid: {}".format(di))
+        logger.critical(f"XML document is not valid: {di}")
     except Exception as e:
-        logger.critical("An error occurred during XML validation: {}".format(e))
-
+        logger.critical(
+            f"An error occurred during XML validation: {err_to_str(e)}")

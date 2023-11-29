@@ -35,6 +35,7 @@ DEFAULT_CONFIG_FILE_SCHEMA = './config/config_schema.xsd'
 #
 DEFAULT_AUDIO = './'  # Default audio directory if no other source is specified
 DEFAULT_AUDIO_FILE_EXTENSIONS = ['.mp3', '.wav', '.aac']
+DEFAULT_XML_PATH = "./config/dev_config.xml"
 
 # ===============================================
 #  Log record format defaults
@@ -95,7 +96,7 @@ DEFAULT_LOGGING_CONFIG = {
 #     hf_token – Hugging Face authentication token for using models hosted on Hugging Face
 #     model_size – The size of the Whisper model to use (e.g., 'tiny', 'base', 'small', 'medium', 'large')
 #     audiodir – The directory that contains audio files
-#     transcriptiondir – The directory where the transcriptions will be written
+#     transcription_dir – The directory where the transcriptions will be written
 # ===============================================
 
 ALLOWED_MODEL_TYPES = ['tiny', 'base', 'small', 'medium', 'large']
@@ -107,5 +108,5 @@ DEFAULT_WHISPER_CONFIG = {
     'hf_token': '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',
     'model_size': 'medium',
     'audiodir': './audiodir/',
-    'transcriptiondir': './transcriptions/'
+    'transcription_dir': './transcriptions/'
 }
