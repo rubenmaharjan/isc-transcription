@@ -1,3 +1,48 @@
+# *************************************************************************************************************************
+#   ISCLogWrapper.py
+#       This module defines a wrapper for the Python logging module, providing a convenient setup for both console and 
+#       file logging with optional colorized output. It is configurable via a dictionary of default values and supports 
+#       custom log formats and date formats.
+# -------------------------------------------------------------------------------------------------------------------
+#   Usage:
+#       The ISCLogWrapper class is used to configure and initialize logging with predefined settings. It supports
+#       customization of console and file log levels, output destinations, and whether to use color in output.
+#
+#       Parameters:
+#           default_dict - A dictionary of default logging configurations including log levels, file paths, and colorization preferences.
+#
+#       Outputs:
+#           Logging output to console and/or to a specified log file, with an optional colorized format for better readability.
+#
+#   Design Notes:
+#   -.  LogFormatter is a custom formatter class that extends logging.Formatter to add color support.
+#   -.  ISCLogWrapper sets up logging according to the configuration provided and applies the LogFormatter.
+# ---------------------------------------------------------------------------------------------------------------------
+#   last updated: November 2023
+#   authors: Ruben Maharjan, Bigya Bajarcharya, Mofeoluwa Jide-Jegede
+# *************************************************************************************************************************
+# ***********************************************
+# imports
+# ***********************************************
+
+# os - provides a portable way of using operating system dependent functionality
+#    os.path.join - join one or more path components intelligently
+
+# sys - provides access to some variables used or maintained by the interpreter
+#    sys.stdout, sys.stderr - file objects used by the print and exception calls to write their output
+
+# logging - provides a flexible framework for emitting log messages from Python programs
+#    logging.getLogger - return a logger with the specified name
+#    logging.Formatter - class which formats logging records
+#    logging.StreamHandler - sends logging output to streams like stdout or stderr
+#    logging.FileHandler - sends logging output to a disk file
+
+# glob - finds all the pathnames matching a specified pattern according to the rules used by the Unix shell
+# No direct glob usage in the imports section
+
+# config.DEFAULTS - module containing default configuration values for the logging setup
+#    DEFAULT_LOGGING_CONFIG - a dictionary containing the default logging configuration settings
+
 import os
 import sys
 import logging
