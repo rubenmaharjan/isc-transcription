@@ -11,7 +11,7 @@
 #         -cx, --configxml [path] : XML configuration file. Default is 'config/default_config.xml'
 #         -mt, --model_type [type] : Whisper model type for transcription. Defaults to 'base'.
 #         -ad, --audiodir [dir] : Directory containing audio files for transcription. Defaults to 'audio_files'.
-#         -td, --transcriptiondir [dir] : Directory to store transcription files. Defaults to 'transcriptions'.
+#         -td, --transcription_dir [dir] : Directory to store transcription files. Defaults to 'transcriptions'.
 #         -ht, --hf_token [token] : Hugging Face token for model access with diarization.
 #         -e, --extensions [ext] : List of allowed audio file extensions. Defaults to ['.mp3', '.wav', '.aac'].
 #      Outputs:

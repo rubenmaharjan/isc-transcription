@@ -4,7 +4,7 @@
       <xs:sequence>
         <xs:element name="library" type="xs:string"/>
         <xs:element name="audiodir" type="xs:string"/>
-        <xs:element name="transcriptiondir" type="xs:string"/>
+        <xs:element name="transcription_dir" type="xs:string"/>
         <xs:element name="settings">
           <xs:complexType>
             <xs:sequence>

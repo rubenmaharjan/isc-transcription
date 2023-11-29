@@ -58,7 +58,7 @@ def parse_command_line_args():
     parser.add_argument("-cx", "--configxml", help="Specify the input xml config file", default=DEFAULT_SCHEMA_FILE)
     parser.add_argument("-mt", "--model_type", help="Specify the model type for transcription", default='base')
     parser.add_argument("-ad", "--audiodir", help="Specify the directory of audio to transcribe", default=DEFAULT_TRANSCRIPTION_DIR)
-    parser.add_argument("-td", "--transcriptiondir", help="Specify the directory to store transcriptions", default=DEFAULT_TRANSCRIPTION_DIR)
+    parser.add_argument("-td", "--transcription_dir", help="Specify the directory to store transcriptions", default=DEFAULT_TRANSCRIPTION_DIR)
     parser.add_argument("-ht", "--hf_token", help="Specify the user token needed for diarization")
     parser.add_argument("-e", "--extensions", nargs='+', help="List of audio extensions in audiodir", default=DEFAULT_FILE_EXTENSIONS)
     return parser.parse_args()
