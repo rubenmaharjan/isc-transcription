@@ -214,13 +214,13 @@ class WhisperxTranscriber:
 
                 self.logger.info(f"Finished writing transcription to file: {output_filename}")
 
-            # else:
-            #     self.logger.info(f"Transcribing audio file: {audio}")
-            #     model = whisperx.load_model()
-            #     result = model.transcribe(audio, batch_size=)
-            #     with open(output_filename, "w+") as output_file:
-            #         for segment in segments_with_speakers["segments"]:
-            #             output_file.write(f"{segment['start']} {segment['end']} {segment['text']}\n")
+            else:
+                self.logger.info(f"Transcribing audio file without diarization: {audio}")
+                model = whisperx.load_model(self.model_size, self.device, compute_type=self.compute_type)
+                result = model.transcribe(audio, batch_size=self.batch_size)
+                with open(output_filename, "w+") as output_file:
+                    for segment in result["segments"]:
+                        output_file.write(f"{segment['start']} {segment['end']} {segment['text']}\n")
 
-            #     self.logger.info(f"Finished writing transcription to file: {output_filename}")
-
+                self.logger.info(f"Finished writing non-diarized transcription to file: {output_filename}")
+                
