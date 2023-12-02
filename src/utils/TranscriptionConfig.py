@@ -57,20 +57,25 @@ from src.utils.helperFunctions import (err_to_str, logger,
 # read XML configuration files for the transcription system.
 # **************************************************************************
 
+
 class TranscriptionConfig():
-
     def __init__(self):
-        command_line_args = parse_command_line_args()
+        self.command_line_args = copy.deepcopy(parse_command_line_args())
         self.config_data = copy.deepcopy(DEFAULT_WHISPER_CONFIG)
-#
+
         try:
-            config_file, fail_if_missing = self.command_line_args.configxml, True
-        except:
-            config_file, fail_if_missing = DEFAULT_CONFIG_FILE, False
+            config_file, fail_if_missing = copy.deepcopy(self.command_line_args.configxml), True
+        except AttributeError:
+            config_file, fail_if_missing = copy.deepcopy(DEFAULT_CONFIG_FILE), False
 
-        self.root = ET.parse(config_file).getroot()
-
-        if not os.path.isfile(config_file):
+        self.root = None
+        if os.path.isfile(config_file):
+            try:
+                self.root = ET.parse(config_file).getroot()
+            except Exception as e:
+                logger.error(f"Error loading config file: {config_file} - {err_to_str(e)}")
+        
+        if not self.root:
             err_msg = f"Config file not found: {config_file}"
             if fail_if_missing:
                 logger.error(err_msg)
@@ -79,15 +84,15 @@ class TranscriptionConfig():
         else:
             validate_configxml(logger, config_file, DEFAULT_CONFIG_FILE_SCHEMA)
             try:
-                for child in ET.parse(config_file).getroot():
+                for child in self.root:
                     self.config_data[child.tag] = child.text
             except Exception as e:
-                logger.error(
-                    f"Error loading config file: {config_file} - {err_to_str(e)}")
+                logger.error(f"Error loading config file: {config_file} - {err_to_str(e)}")
 
-        for (key, value) in command_line_args.items():
+        for key, value in self.command_line_args.items():
             self.config_data[key] = value
-        print(f"Config file: {self.config_data}")
+
+        print(f"Config data: {self.config_data}")
 
     def get(self, key):
         """

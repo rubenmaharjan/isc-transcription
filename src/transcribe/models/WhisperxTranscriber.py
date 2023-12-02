@@ -148,8 +148,8 @@ class WhisperxTranscriber:
         #  set operating parameters
         #
         self.audio_files = config_dict.get(
-            'audio_files') if config_dict.get(
-            'audio_files') is not None else DEFAULT_WHISPER_CONFIG['audiodir']
+            'audiodir') if config_dict.get(
+            'audiodir') is not None else DEFAULT_WHISPER_CONFIG['audiodir']
         self.batch_size = config_dict.get(
             'batch_size') if config_dict.get(
             'batch_size') is not None else DEFAULT_WHISPER_CONFIG['batch_size']
@@ -213,7 +213,7 @@ class WhisperxTranscriber:
 
             audio_path = os.path.abspath(audio)
             p = pathlib.PurePath(audio_path)
-            output_dir = str(self.output_dir) + str(p.parents[0]) + str(self.output_dir.split('.')[1])
+            output_dir = str(p.parents[0]) + str(self.output_dir.split('.')[1])
             base_name = p.name.split('.')[0]+'.txt'
             output_filename = os.path.join(output_dir, base_name)
             self.logger.info(
@@ -256,7 +256,7 @@ class WhisperxTranscriber:
                 result = model.transcribe(audio, batch_size=self.batch_size)
 
                 # Check if the folder exists, and create it if it doesn't
-                if not os.path.exists(output_filename):
+                if not os.path.exists(output_dir):
                     os.makedirs(output_dir)
                     
                 with open(output_filename, "w+") as output_file:
