@@ -259,10 +259,13 @@ class WhisperxTranscriber:
                 if not os.path.exists(output_dir):
                     os.makedirs(output_dir)
                     
-                with open(output_filename, "w+") as output_file:
-                    for segment in result["segments"]:
-                        output_file.write(
-                            f"{segment['start']} {segment['end']} {segment['text']}\n")
+                if not os.path.exists(output_filename):
+                    with open(output_filename, "w+") as output_file:
+                        for segment in result["segments"]:
+                            output_file.write(
+                                f"{segment['start']} {segment['end']} {segment['text']}\n")
+                else:
+                    logger.info(f"Transcription of {output_filename} already exists.")
 
                 self.logger.info(
                     f"Finished writing non-diarized transcription to file: {output_filename}")
