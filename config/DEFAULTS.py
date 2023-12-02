@@ -108,5 +108,6 @@ DEFAULT_WHISPER_CONFIG = {
     'hf_token': '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',
     'model_size': 'small',
     'audiodir': './',
-    'output_dir': './transcriptions/'
+    'output_dir': './transcriptions/',
+    'smart_move':'yes',
 }

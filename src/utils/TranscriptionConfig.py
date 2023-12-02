@@ -40,6 +40,7 @@
 
 import os
 import xml.etree.ElementTree as ET
+import copy 
 
 from config.DEFAULTS import (DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_SCHEMA,
                              DEFAULT_WHISPER_CONFIG)
@@ -60,7 +61,7 @@ class TranscriptionConfig():
 
     def __init__(self):
         command_line_args = parse_command_line_args()
-        self.config_data = DEFAULT_WHISPER_CONFIG
+        self.config_data = copy.deepcopy(DEFAULT_WHISPER_CONFIG)
 #
         try:
             config_file, fail_if_missing = self.command_line_args.configxml, True

@@ -6,4 +6,6 @@
     <verbosity>true</verbosity>
     <hf_token>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</hf_token>
     <extensions>['mp3', 'wav']</extensions>
+    <device>cpu</device>
+    <compute_type>int8</compute_type>
 </config>

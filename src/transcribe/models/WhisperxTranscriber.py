@@ -28,7 +28,7 @@
 #         When a directory is provided, it will transcribe all supported audio files within that directory.
 #
 #   Design and Implementation Notes:
-#   -.  The WhisperxTranscriber uses WhisperX, a library isthat is downloadable  available from at https://github.com/m-bain/whisperX.
+#   -.  The WhisperxTranscriber uses WhisperX, a library isthat is downloadable  available from at https://github.com/m-bain/
 #       -.  WhisperX isWhisperX is a third party library that augments OpenAI's transcription library,
 #       Whisper transcription service, withto support for diarization.
 #            -.  It features a diarization pipeline to distinguish between#  different speakers within the audio.
@@ -90,11 +90,11 @@
 import logging
 import os
 import pathlib
-from src.utils.helperFunctions import err_to_str 
+from src.utils.helperFunctions import err_to_str
 import sys
 
-import whisperx
-from whisperx import (DiarizationPipeline, load_audio)
+from whisperx import (DiarizationPipeline, load_audio,
+                      load_align_model, load_model, align, assign_word_speakers)
 
 from config.DEFAULTS import DEFAULT_WHISPER_CONFIG
 from src.utils.IscFileSearch import IscFileSearch
@@ -148,21 +148,29 @@ class WhisperxTranscriber:
         #  set operating parameters
         #
         self.audio_files = config_dict.get(
-            'audio_files') or DEFAULT_WHISPER_CONFIG['audiodir']
+            'audio_files') if config_dict.get(
+            'audio_files') is not None else DEFAULT_WHISPER_CONFIG['audiodir']
         self.batch_size = config_dict.get(
-            'batch_size') or DEFAULT_WHISPER_CONFIG['batch_size']
+            'batch_size') if config_dict.get(
+            'batch_size') is not None else DEFAULT_WHISPER_CONFIG['batch_size']
         self.compute_type = config_dict.get(
-            'compute_type') or DEFAULT_WHISPER_CONFIG['compute_type']
+            'compute_type') if config_dict.get(
+            'compute_type') is not None else DEFAULT_WHISPER_CONFIG['compute_type']
         self.device = config_dict.get(
-            'device') or DEFAULT_WHISPER_CONFIG['device']
+            'device') if config_dict.get(
+            'device') is not None else DEFAULT_WHISPER_CONFIG['device']
         self.enable_diarization = config_dict.get(
-            'diarize') or DEFAULT_WHISPER_CONFIG['diarize']
+            'diarize') if config_dict.get(
+            'diarize') is not None else DEFAULT_WHISPER_CONFIG['diarize']
         self.hf_token = config_dict.get(
-            'hf_token') or DEFAULT_WHISPER_CONFIG['hf_token']
+            'hf_token') if config_dict.get(
+            'hf_token') is not None else DEFAULT_WHISPER_CONFIG['hf_token']
         self.model_size = config_dict.get(
-            'model_size') or DEFAULT_WHISPER_CONFIG['model_size']
+            'model_size') if config_dict.get(
+            'model_size') is not None else DEFAULT_WHISPER_CONFIG['model_size']
         self.output_dir = config_dict.get(
-            'output_dir') or DEFAULT_WHISPER_CONFIG['output_dir']
+            'output_dir') if config_dict.get(
+            'output_dir') is not None else DEFAULT_WHISPER_CONFIG['output_dir']
 
         self.logger = logger
         #
@@ -170,22 +178,28 @@ class WhisperxTranscriber:
         #
         self.logger.info(f"Loading {self.model_size} model")
         try:
-            self.model = whisperx.load_model(
-                    self.model_size, self.device, compute_type=self.compute_type)
+            self.model = load_model(
+                self.model_size, self.device, compute_type=self.compute_type)
         except Exception as e:
-            logger.critical(f"Error while loading whisper model: \n {err_to_str(e)}")
+            logger.critical(
+                f"Error while loading whisper model: \n {err_to_str(e)}")
             sys.exit(1)
 
 
 # TODO please redo the logic to make diarization optional and to support GPU use
+
     def transcribe(self):
         logger.info(f"Transcribing with {self.model_size} model")
 
         # Check if the audio_files attribute is a directory or a single file
         if os.path.isdir(self.audio_files):
-            file_search = IscFileSearch(self.audio_files)
-            # Use the IscFileSearch method to list all audio files
-            audio_files = file_search.traverse_directory()
+            try:
+                logger.info(f"Traversing if audio_files is a directory")
+                file_search = IscFileSearch(self.audio_files)
+                # Use the IscFileSearch method to list all audio files
+                audio_files = file_search.traverse_directory()
+            except Exception as e:
+                logger.error(f"Error while traversing audio directory")
         else:
             # Wrap the single file in a list for consistent processing
             audio_files = [self.audio_files]
@@ -197,31 +211,36 @@ class WhisperxTranscriber:
             result = self.model.transcribe(
                 waveform, batch_size=self.batch_size)
 
-            p = pathlib.PurePath(os.path.abspath(audio)).parts
-            output_dir = p[0] + self.output_dir
-            base_name = (p[2:][:-1])+(os.path.splitext(p[-1])[0],)
-            output_filename = '/'.join(output_dir + base_name)
+            audio_path = os.path.abspath(audio)
+            p = pathlib.PurePath(audio_path)
+            output_dir = str(self.output_dir) + str(p.parents[0]) + str(self.output_dir.split('.')[1])
+            base_name = p.name.split('.')[0]+'.txt'
+            output_filename = os.path.join(output_dir, base_name)
             self.logger.info(
-                f"Writing transcription to directory {output_dir} as {base_name}.*")
+                f"Writing transcription to directory {output_filename} as {base_name}.*")
 
             if self.enable_diarization:
                 self.logger.info(f"Diarizing audio file: {audio}")
 
-                diarize_model = DiarizationPipeline(
-                    use_auth_token=self.hf_token, device=self.device)
-                diarize_segments = diarize_model(audio)
+                try:
+                    diarize_model = DiarizationPipeline(
+                        use_auth_token=self.hf_token, device=self.device)
+                    diarize_segments = diarize_model(audio)
 
-                model_a, metadata = whisperx.load_align_model(
-                    language_code=result["language"], device=self.device)
+                    model_a, metadata = load_align_model(
+                        language_code=result["language"], device=self.device)
 
-                aligned_segments = whisperx.align(
-                    result['segments'], model_a, metadata, audio, self.device, return_char_alignments=False)
-                segments_with_speakers = whisperx.assign_word_speakers(
-                    diarize_segments, aligned_segments)
+                    aligned_segments = align(
+                        result['segments'], model_a, metadata, audio, self.device, return_char_alignments=False)
+                    segments_with_speakers = assign_word_speakers(
+                        diarize_segments, aligned_segments)
+                except Exception as e:
+                    logger.critical(
+                        f"Error while diarizing: \n {err_to_str(e)}")
 
     # TODO: Check for and log write errors!
 
-                with open(output_filename, "w+") as output_file:
+                with open(output_filename, "w") as output_file:
                     for segment in segments_with_speakers["segments"]:
                         output_file.write(
                             f"{segment['start']} {segment['end']} {segment['text']}\n")
@@ -232,9 +251,14 @@ class WhisperxTranscriber:
             else:
                 self.logger.info(
                     f"Transcribing audio file without diarization: {audio}")
-                model = whisperx.load_model(
+                model = load_model(
                     self.model_size, self.device, compute_type=self.compute_type)
                 result = model.transcribe(audio, batch_size=self.batch_size)
+
+                # Check if the folder exists, and create it if it doesn't
+                if not os.path.exists(output_filename):
+                    os.makedirs(output_dir)
+                    
                 with open(output_filename, "w+") as output_file:
                     for segment in result["segments"]:
                         output_file.write(

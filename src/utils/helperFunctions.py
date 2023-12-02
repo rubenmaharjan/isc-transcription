@@ -69,7 +69,7 @@ def parse_command_line_args():
     parser = argparse.ArgumentParser(
         description="Process command-line arguments for audio transcription.")
     #
-    parser.add_argument("-au", "--audio", help="The input audio file or file directory", dest='audio', default=DEFAULT_AUDIO)
+    parser.add_argument("-au", "--audio", help="The input audio file or file directory", dest='audiodir', default=DEFAULT_AUDIO)
     parser.add_argument("-cx", "--configxml", help="An alternative xml config file", dest='configxml')
     parser.add_argument("-dv", "--device", help="Hardware device for diarization", dest='device')
     parser.add_argument("-ed", "--enable_diarization", help="If true, diarize output after transcription", dest="diarize", default=False)
