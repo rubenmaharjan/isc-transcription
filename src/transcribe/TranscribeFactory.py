@@ -1,15 +1,10 @@
+import logging
+# The importlib module provides a way to import other modules dynamically
 from importlib import import_module
+# The inspect module provides functions for inspecting live objects such as modules, classes, and functions
 from inspect import getmembers, isabstract, isclass
 
 from src.transcribe.models import Transcribe
-
-# The importlib module provides a way to import other modules dynamically
-from importlib import import_module
-
-# The inspect module provides functions for inspecting live objects such as modules, classes, and functions
-from inspect import getmembers, isclass, isabstract
-
-import logging
 
 logger = logging.getLogger(__name__)
 

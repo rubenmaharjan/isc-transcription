@@ -22,7 +22,7 @@ Note the requests for logic changes, including
 #         -ht, --hf_token [token] : Hugging Face token for model access with diarization.  Defaults to None.
 #         -lf, --logfile [path] : Name of log file to which to write.  Defaults to sys.stderr.
 #         -mt, --model_type [type] : Whisper model type for transcription. Defaults to 'base'.
-#         -td, --transcription_dir [dir] : Directory to store transcription files. Defaults to 'transcriptions'.
+#         -od, --output_dir [dir] : Directory to store transcription files. Defaults to 'transcriptions'.
 #      Outputs:
 #         Processes and transcribes audio files, outputting transcription files in the specified directory.
 #         Application activity and errors are logged.
@@ -47,15 +47,11 @@ FAILURE = 1
 # imports
 # ***********************************************
 
-# os – provides a portable way of using operating system dependent functionality
-#   os.path - submodule of os for manipulating paths
-#   os.path.isdir, os.path.isfile - functions to check if a path is a directory or a file
 # sys –
 #   exit – exit, returning a final status code
 # threading - 
 #    current_thread - identify current thread
 
-import os
 import sys
 import threading
 
@@ -74,7 +70,7 @@ import threading
 from src.transcribe.models.WhisperxTranscriber import WhisperxTranscriber
 from src.utils.ISCLogWrapper import ISCLogWrapper, logging
 from src.utils.TranscriptionConfig import TranscriptionConfig
-from src.utils.IscFileSearch import IscFileSearch 
+from src.utils.helperFunctions import err_to_str 
 
 
 # ***********************************************
@@ -93,37 +89,12 @@ if __name__ == '__main__':
     if not isc_log_wrapper.set_up_logging():
         print(f"?? {threading.current_thread().name}: Failed to set up logging, aborting.")
         sys.exit(FAILURE)
-    logger = isc_log_wrapper.getLogger(__name__)
+    logger = logging.getLogger(__name__)
 
-# TODO Token configuration should be handled by the whisperxTranscriber module
-# TODO Need to get the model type from the config
-
-    # Get the audio path -- it could be a directory or a file
-    audio_path = config.get('audio')
-    
-    # Initialize a list to store audio file paths
-    audio_files = []
-
-    # Check if the audio path is a directory
-    if os.path.isdir(audio_path):
-        # Get all audio files in the directory
-        audio_files = IscFileSearch(audio_path).traverse_directory()  
-    elif os.path.isfile(audio_path):
-        # If it's a single file, append it to the list
-        audio_files.append(audio_path)
-    else:
-        logger.error("The specified audio path is neither a file nor a directory.")
-        sys.exit(FAILURE) 
-
-    if not audio_files:
-        logger.error("No audio files found in the specified path.")
+    try:
+        model = WhisperxTranscriber(config, logger)
+        model.transcribe() 
+        sys.exit(SUCCESS)
+    except Exception as e:
+        logger.critical(f"Transcription failed due to error: {err_to_str(e)}")
         sys.exit(FAILURE)
-
-# TODO The original code fails to integrate properly with what I think should be the interface for WhisperxTranscriber.
-# TODO See my comments on WhisperxTranscriber.
-    model = WhisperxTranscriber(config, logger)
-    for audio in audio_files:
-        logger.info(f"Starting transcription for {audio}")
-        model.transcribe(audio) 
-
-    sys.exit(SUCCESS)

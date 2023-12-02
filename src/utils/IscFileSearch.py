@@ -39,8 +39,8 @@
 #    getLogger - function to return a logger instance
 
 
-import os
 import logging
+import os
 
 logger = logging.getLogger()
 

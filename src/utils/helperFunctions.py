@@ -30,18 +30,19 @@
 # argparse - command-line parsing library
 #    ArgumentParser - class to parse command-line options
 # config.DEFAULTS - module with default configuration constants
-#    DEFAULT_SCHEMA_FILE, DEFAULT_TRANSCRIPTION_DIR, DEFAULT_FILE_EXTENSIONS - constants defining default values
+#    DEFAULT_SCHEMA_FILE, DEFAULT_FILE_EXTENSIONS - constants defining default values
 # lxml.etree - XML processing library
 #    etree - class for XML document parsing and validation
 # logging - logging library
 #    getLogger - function to get a logging instance
 
 import argparse
-from config.DEFAULTS import DEFAULT_AUDIO, DEFAULT_AUDIO_FILE_EXTENSIONS, DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_SCHEMA
-from lxml import etree
-# import logging
+import logging
 
-# logger = logging.getLogger()
+from lxml import etree
+
+from config.DEFAULTS import (DEFAULT_AUDIO, DEFAULT_AUDIO_FILE_EXTENSIONS,
+                             DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_SCHEMA)
 
 # ***********************************************
 #  auxiliary functions
@@ -49,7 +50,7 @@ from lxml import etree
 
 
 def err_to_str(e): return '' if str(e) is None else str(e)
-
+logger = logging.getLogger()
 
 # ***********************************************
 #  helper functions proper
@@ -76,9 +77,9 @@ def parse_command_line_args():
     parser.add_argument("-ht", "--hf_token", help="The user token needed for diarization", dest="hf_token")
     parser.add_argument("-lf", "--logfile", help="The file used to log application output", dest="logfile")
     parser.add_argument("-mt", "--model_type", help="The model type for transcription", dest="model_type")
-    parser.add_argument("-td", "--transcription_dir", help="The directory to store transcriptions", dest="transcriptionsdir")
+    parser.add_argument("-td", "--output_dir", help="The directory to store transcriptions", dest="transcriptionsdir")
     
-    return parser.parse_args()
+    return vars(parser.parse_args())
 
 
 def validate_configxml(logger, xml_file=DEFAULT_CONFIG_FILE, xsd_schema=DEFAULT_CONFIG_FILE_SCHEMA):

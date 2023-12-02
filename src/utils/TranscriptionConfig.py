@@ -38,64 +38,55 @@
 # src.utils - custom package for utility functions related to the transcription model
 #   helperFunctions - module with functions for command-line argument parsing and XML file validation
 
-from config.DEFAULTS import DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_SCHEMA, DEFAULT_WHISPER_CONFIGS
-from lxml.etree import ElementTree as ET
 import os
-import src.utils.helperFunctions as helperFunctions
-import logging
+import xml.etree.ElementTree as ET
 
-# ***********************************************
-#  auxiliary functions
-# ***********************************************
-
-err_to_str = lambda e: '' if str(e) is None else str(e)
-logger = logging.getLogger()
+from config.DEFAULTS import (DEFAULT_CONFIG_FILE, DEFAULT_CONFIG_FILE_SCHEMA,
+                             DEFAULT_WHISPER_CONFIG)
+from src.utils.helperFunctions import (err_to_str, logger,
+                                       parse_command_line_args,
+                                       validate_configxml)
 
 # ***********************************************
 #  main module
 # ***********************************************
 
-def configure_whisperX_operation(config_file, fail_if_missing=True):
-    """
-    Extract parameters from the XML configuration file if path is specified;
-    otherwise, populate with the default XML path over the default configuration values.
-
-    Parameters:
-    - config_file: Path to the XML file.
-    Note: config_file assumed to have all top-level elements
-    """
-
-    # return config_data
 
 # **************************************************************************
-    #read XML configuration files for the transcription system.
+# read XML configuration files for the transcription system.
 # **************************************************************************
 
-class TranscriptionConfig(object):
+class TranscriptionConfig():
 
     def __init__(self):
-        command_line_args = helperFunctions.parse_command_line_args()
-        self.config_data = DEFAULT_WHISPER_CONFIGS
+        command_line_args = parse_command_line_args()
+        self.config_data = DEFAULT_WHISPER_CONFIG
 #
         try:
             config_file, fail_if_missing = self.command_line_args.configxml, True
         except:
             config_file, fail_if_missing = DEFAULT_CONFIG_FILE, False
+
+        self.root = ET.parse(config_file).getroot()
+
         if not os.path.isfile(config_file):
             err_msg = f"Config file not found: {config_file}"
-            if fail_if_missing:   logger.error(err_msg)
-            else:                 logger.warning(err_msg)
+            if fail_if_missing:
+                logger.error(err_msg)
+            else:
+                logger.warning(err_msg)
         else:
-            helperFunctions.validate_configxml(logger, config_file, DEFAULT_CONFIG_FILE_SCHEMA)
+            validate_configxml(logger, config_file, DEFAULT_CONFIG_FILE_SCHEMA)
             try:
                 for child in ET.parse(config_file).getroot():
                     self.config_data[child.tag] = child.text
             except Exception as e:
-                logger.error(f"Error loading config file: {config_file} - {err_to_str(e)}")
+                logger.error(
+                    f"Error loading config file: {config_file} - {err_to_str(e)}")
 
-        for (key, value) in command_line_args:
+        for (key, value) in command_line_args.items():
             self.config_data[key] = value
-
+        print(f"Config file: {self.config_data}")
 
     def get(self, key):
         """
@@ -104,7 +95,8 @@ class TranscriptionConfig(object):
         try:
             return self.config_data.get(key)
         except Exception as e:
-            logger.error(f'Could not find element in configuration file: {e}')
+            logger.error(
+                f'Could not find element in configuration file: {err_to_str(e)}')
             return None
 
     def set_param(self, key, value):
@@ -131,7 +123,7 @@ class TranscriptionConfig(object):
             logger.info(f'Set value of key "{key}" to: {value}')
             return True
         except Exception as e:
-            logger.error(f'Error while setting element value: {e}')
+            logger.error(f'Error while setting element value: {err_to_str(e)}')
             return False
 
     def get_all(self):
@@ -141,12 +133,9 @@ class TranscriptionConfig(object):
         result = {}
         try:
             for child in self.root:
-                if child.tag == "settings":
-                    for subchild in child:
-                        result[f"{child.tag}/{subchild.tag}"] = subchild.text
-                else:
-                    result[child.tag] = child.text
+                result[child.tag] = child.text
             return result
         except Exception as e:
-            logger.error(f'Error while getting all key-value pairs in configuration file: {e}')
+            logger.error(
+                f'Error while getting all key-value pairs in configuration file: {err_to_str(e)}')
             return False

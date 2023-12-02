@@ -96,7 +96,7 @@ DEFAULT_LOGGING_CONFIG = {
 #     hf_token – Hugging Face authentication token for using models hosted on Hugging Face
 #     model_size – The size of the Whisper model to use (e.g., 'tiny', 'base', 'small', 'medium', 'large')
 #     audiodir – The directory that contains audio files
-#     transcription_dir – The directory where the transcriptions will be written
+#     output_dir – The directory where the transcriptions will be written
 # ===============================================
 
 ALLOWED_MODEL_TYPES = ['tiny', 'base', 'small', 'medium', 'large']
@@ -104,9 +104,9 @@ DEFAULT_WHISPER_CONFIG = {
     'batch_size': 1,
     'compute_type': 'int8',
     'device':  'cpu',
-    'diarize':  True,
+    'diarize':  False,
     'hf_token': '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',
-    'model_size': 'medium',
-    'audiodir': './audiodir/',
-    'transcription_dir': './transcriptions/'
+    'model_size': 'small',
+    'audiodir': './',
+    'output_dir': './transcriptions/'
 }
