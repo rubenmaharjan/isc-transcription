@@ -12,7 +12,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--au", "~/Desktop"]
+            "args": ["--ed", "True"]
         }
     ]
 }

@@ -71,13 +71,14 @@ def parse_command_line_args():
     #
     parser.add_argument("-au", "--audio", help="The input audio file or file directory", dest='audiodir', default=DEFAULT_AUDIO)
     parser.add_argument("-cx", "--configxml", help="An alternative xml config file", dest='configxml')
+    parser.add_argument("-ct", "--compute_type", help="Specifices the computation type", dest='compute_type')
     parser.add_argument("-dv", "--device", help="Hardware device for diarization", dest='device')
     parser.add_argument("-ed", "--enable_diarization", help="If true, diarize output after transcription", dest="diarize", default=False)
     parser.add_argument("-ex", "--extensions", nargs='+', help="List of audio extensions in audiodir", dest='extensions', default=DEFAULT_AUDIO_FILE_EXTENSIONS)
     parser.add_argument("-ht", "--hf_token", help="The user token needed for diarization", dest="hf_token")
     parser.add_argument("-lf", "--logfile", help="The file used to log application output", dest="logfile")
     parser.add_argument("-mt", "--model_type", help="The model type for transcription", dest="model_type")
-    parser.add_argument("-td", "--output_dir", help="The directory to store transcriptions", dest="transcriptionsdir")
+    parser.add_argument("-td", "--output_dir", help="The directory to store transcriptions", dest="output_dir")
     
     return vars(parser.parse_args())
 

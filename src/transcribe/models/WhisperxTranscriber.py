@@ -145,8 +145,7 @@ logger = logging.getLogger('WhisperxTranscriber')
 
 class WhisperxTranscriber:
     def __init__(self, config_dict, logger):
-        #  set operating parameters
-        #
+        # Set operating parameters
         self.audio_files = config_dict.get(
             'audiodir') if config_dict.get(
             'audiodir') is not None else DEFAULT_WHISPER_CONFIG['audiodir']
@@ -173,99 +172,105 @@ class WhisperxTranscriber:
             'output_dir') is not None else DEFAULT_WHISPER_CONFIG['output_dir']
 
         self.logger = logger
-        #
-        #  set up operations
-        #
+
+        # Set up operations
         self.logger.info(f"Loading {self.model_size} model")
         try:
             self.model = load_model(
                 self.model_size, self.device, compute_type=self.compute_type)
         except Exception as e:
-            logger.critical(
+            self.logger.critical(
                 f"Error while loading whisper model: \n {err_to_str(e)}")
             sys.exit(1)
 
-
-# TODO please redo the logic to make diarization optional and to support GPU use
-
     def transcribe(self):
-        logger.info(f"Transcribing with {self.model_size} model")
+        """
+        Transcribe audio files with optional diarization.
+        """
+        self.logger.info(f"Transcribing with {self.model_size} model")
 
-        # Check if the audio_files attribute is a directory or a single file
-        if os.path.isdir(self.audio_files):
-            try:
-                logger.info(f"Traversing if audio_files is a directory")
+        try:
+            if os.path.isdir(self.audio_files):
+                self.logger.info(f"Traversing if audio_files is a directory")
                 file_search = IscFileSearch(self.audio_files)
-                # Use the IscFileSearch method to list all audio files
                 audio_files = file_search.traverse_directory()
-            except Exception as e:
-                logger.error(f"Error while traversing audio directory")
-        else:
-            # Wrap the single file in a list for consistent processing
-            audio_files = [self.audio_files]
+            else:
+                audio_files = [self.audio_files]
 
-        # Loop through all files to transcribe them
-        for audio in audio_files:
-            self.logger.info(f"Transcribing audio file: {audio}")
-            waveform = load_audio(audio)
-            result = self.model.transcribe(
-                waveform, batch_size=self.batch_size)
+            for audio in audio_files:
+                self.logger.info(f"Transcribing audio file: {audio}")
+                waveform = load_audio(audio)
+                result = self.model.transcribe(
+                    waveform, batch_size=self.batch_size)
 
-            audio_path = os.path.abspath(audio)
-            p = pathlib.PurePath(audio_path)
-            output_dir = str(p.parents[0]) + str(self.output_dir.split('.')[1])
-            base_name = p.name.split('.')[0]+'.txt'
-            output_filename = os.path.join(output_dir, base_name)
-            self.logger.info(
-                f"Writing transcription to directory {output_filename} as {base_name}.*")
+                audio_path = os.path.abspath(audio)
+                p = pathlib.PurePath(audio_path)
+                output_dir = str(p.parents[0]) + str(self.output_dir.split('.')[1])
+                base_name = p.name.split('.')[0] + '.txt'
+                output_filename = os.path.join(output_dir, base_name)
+            
+                if self.enable_diarization:
+                    self.diarize_and_write(output_dir, output_filename, result, audio)
+                else:
+                    self.transcribe_and_write(output_dir, output_filename, result)
 
-            if self.enable_diarization:
-                self.logger.info(f"Diarizing audio file: {audio}")
+        except Exception as e:
+            self.logger.error(f"Error during transcription: {err_to_str(e)}")
 
-                try:
-                    diarize_model = DiarizationPipeline(
-                        use_auth_token=self.hf_token, device=self.device)
-                    diarize_segments = diarize_model(audio)
+    def diarize_and_write(self, output_dir, output_filename, result, audio):
+        """
+        Diarize the audio file and write the transcription.
+        """
+        try:
+            self.logger.info(f"Diarizing audio file: {audio}")
+            diarize_model = DiarizationPipeline(
+                use_auth_token=self.hf_token, device=self.device)
+            diarize_segments = diarize_model(audio)
 
-                    model_a, metadata = load_align_model(
-                        language_code=result["language"], device=self.device)
+            model_a, metadata = load_align_model(
+                language_code=result["language"], device=self.device)
 
-                    aligned_segments = align(
-                        result['segments'], model_a, metadata, audio, self.device, return_char_alignments=False)
-                    segments_with_speakers = assign_word_speakers(
-                        diarize_segments, aligned_segments)
-                except Exception as e:
-                    logger.critical(
-                        f"Error while diarizing: \n {err_to_str(e)}")
+            aligned_segments = align(
+                result['segments'], model_a, metadata, audio, self.device, return_char_alignments=False)
+            segments_with_speakers = assign_word_speakers(
+                diarize_segments, aligned_segments)
 
-    # TODO: Check for and log write errors!
+            self.write_transcription(output_dir, output_filename, segments_with_speakers)
 
+        except Exception as e:
+            self.logger.critical(f"Error while diarizing: {err_to_str(e)}")
+
+    def transcribe_and_write(self, output_dir, output_filename, result):
+        """
+        Transcribe the audio file and write the transcription.
+        """
+        try:
+            model = load_model(
+                self.model_size, self.device, compute_type=self.compute_type)
+
+            self.write_transcription(output_dir, output_filename, result)
+
+        except Exception as e:
+            self.logger.error(f"Error during transcription: {err_to_str(e)}")
+
+    def write_transcription(self, output_dir, output_filename, result):
+        """
+        Write the transcription to the specified output directory and filename.
+        """
+        try:
+            if not os.path.exists(output_dir):
+                os.makedirs(output_dir)
+
+            if not os.path.exists(output_filename):
                 with open(output_filename, "w") as output_file:
-                    for segment in segments_with_speakers["segments"]:
+                    for segment in result["segments"]:
                         output_file.write(
                             f"{segment['start']} {segment['end']} {segment['text']}\n")
-
-                self.logger.info(
-                    f"Finished writing transcription to file: {output_filename}")
-
             else:
-                self.logger.info(
-                    f"Transcribing audio file without diarization: {audio}")
-                model = load_model(
-                    self.model_size, self.device, compute_type=self.compute_type)
-                result = model.transcribe(audio, batch_size=self.batch_size)
+                self.logger.info(f"Transcription of {output_filename} already exists.")
 
-                # Check if the folder exists, and create it if it doesn't
-                if not os.path.exists(output_dir):
-                    os.makedirs(output_dir)
-                    
-                if not os.path.exists(output_filename):
-                    with open(output_filename, "w+") as output_file:
-                        for segment in result["segments"]:
-                            output_file.write(
-                                f"{segment['start']} {segment['end']} {segment['text']}\n")
-                else:
-                    logger.info(f"Transcription of {output_filename} already exists.")
+            self.logger.info(
+                f"Finished writing transcription to file: {output_filename}")
 
-                self.logger.info(
-                    f"Finished writing non-diarized transcription to file: {output_filename}")
+        except Exception as e:
+            self.logger.error(f"Error during transcription: {err_to_str(e)}")
