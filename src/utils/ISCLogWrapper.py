@@ -44,6 +44,7 @@ import sys
 
 from config.DEFAULTS import (DEFAULT_LOG_RECORD_FORMAT_CONFIG,
                              DEFAULT_LOGGING_CONFIG)
+from .helperFunctions import err_to_str
 
 # Logging formatter supporting colorized output
 # ***************************************************************************************************************************
@@ -69,7 +70,7 @@ class LogRecordFormatter(logging.Formatter):
     def line_format(): return DEFAULT_LOG_RECORD_FORMAT_CONFIG['line_format']
 
     @staticmethod
-    def date_format():  DEFAULT_LOG_RECORD_FORMAT_CONFIG['date_format']
+    def date_format(): return DEFAULT_LOG_RECORD_FORMAT_CONFIG['date_format']
 
     def __init__(self, color, *args, **kwargs):
         super(LogRecordFormatter, self).__init__(*args, **kwargs)
@@ -107,21 +108,31 @@ class LogRecordFormatter(logging.Formatter):
 #           The formatted record
 # ***************************************************************************************************************************
 
+
 class ISCLogWrapper(object):
 
     def __init__(self, config):
         # Configurable logging parameters
-        self.console_log_output =  config.get('console_log_output') if 'console_log_output' in config.get_all() else DEFAULT_LOGGING_CONFIG['console']['output']
-        self.console_log_level =  config.get('console_log_level') if 'console_log_level' in config.get_all() else DEFAULT_LOGGING_CONFIG['console']['log_level']
-        self.console_colorize = config.get('console_colorize') if 'console_colorize' in config.get_all() else DEFAULT_LOGGING_CONFIG['console']['colorize']
-        self.logfile_path = config.get('logfile_path') if 'logfile_path' in config.get_all() else DEFAULT_LOGGING_CONFIG['logfile']['path']
-        self.logfile_file = config.get('logfile_file') if 'logfile_file' in config.get_all() else DEFAULT_LOGGING_CONFIG['logfile']['name']
-        self.logfile_log_level = config.get('logfile_log_level') if 'logfile_log_level' in config.get_all() else DEFAULT_LOGGING_CONFIG['logfile']['log_level']
-        self.logfile_colorize = config.get('logfile_colorize') if 'logfile_colorize' in config.get_all() else DEFAULT_LOGGING_CONFIG['logfile']['colorize']
+        self.console_log_output = config.get('console_log_output') if 'console_log_output' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['console']['output']
+        self.console_log_level = config.get('console_log_level') if 'console_log_level' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['console']['log_level']
+        self.console_colorize = config.get('console_colorize') if 'console_colorize' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['console']['colorize']
+        self.logfile_path = config.get('logfile_path') if 'logfile_path' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['logfile']['path']
+        self.logfile_file = config.get('logfile_file') if 'logfile_file' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['logfile']['name']
+        self.logfile_log_level = config.get('logfile_log_level') if 'logfile_log_level' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['logfile']['log_level']
+        self.logfile_colorize = config.get('logfile_colorize') if 'logfile_colorize' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['logfile']['colorize']
 
         # Log record formatting parameters
-        self.line_format = config.get('line_format') if 'line_format' in config.get_all() else LogRecordFormatter.line_format()
-        self.date_format = config.get('date_format') if 'date_format' in config.get_all() else LogRecordFormatter.date_format()
+        self.line_format = config.get('line_format') if 'line_format' in config.get_all(
+        ) else LogRecordFormatter.line_format()
+        self.date_format = config.get('date_format') if 'date_format' in config.get_all(
+        ) else LogRecordFormatter.date_format()
 
     # Set up logging using the configuration values passed to the constructor
     def set_up_logging(self):
@@ -143,18 +154,18 @@ class ISCLogWrapper(object):
         elif (console_log_output == "stderr"):
             console_log_output = sys.stderr
         else:
-            print("Failed to set console output: invalid output: '%s'" %
-                  console_log_output)
-            return False
+            print(
+                f"Invalid console output: {console_log_output}",  file=sys.stderr)
+
         console_handler = logging.StreamHandler(console_log_output)
 
         # Set console log level
         try:
             # only accepts uppercase level names
             console_handler.setLevel(self.console_log_level.upper())
-        except:
-            print("Failed to set console log level: invalid level: '%s'" %
-                  self.console_log_level)
+        except Exception as exception:
+            print(
+                f"Failed to set console log level. Invalid level: {self.console_log_level}  \n Error: {err_to_str(exception)}",  file=sys.stderr)
             return False
 
         # Create and set formatter, add console handler to logger
@@ -173,16 +184,17 @@ class ISCLogWrapper(object):
                 logfile_handler = logging.FileHandler(
                     os.path.join(self.logfile_path, self.logfile_file))
         except Exception as exception:
-            print("Failed to set up log file: %s" % str(exception))
+            print(
+                f"Failed to set up log file: {err_to_str(exception)}",  file=sys.stderr)
             return False
 
         # Set log file log level
         try:
             # only accepts uppercase level names
             logfile_handler.setLevel(self.logfile_log_level.upper())
-        except:
-            print("Failed to set log file log level: invalid level: '%s'" %
-                  self.logfile_log_level)
+        except Exception as exception:
+            print(
+                f"Failed to set up log file log level: {err_to_str(exception)}",  file=sys.stderr)
             return False
 
         # Create and set formatter, add log file handler to logger

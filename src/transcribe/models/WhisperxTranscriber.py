@@ -215,7 +215,7 @@ class WhisperxTranscriber:
                     self.transcribe_and_write(output_dir, output_filename, result)
 
         except Exception as e:
-            self.logger.error(f"Error during transcription: {err_to_str(e)}")
+            self.logger.critical(f"Error during transcription: {err_to_str(e)}")
 
     def diarize_and_write(self, output_dir, output_filename, result, audio):
         """
