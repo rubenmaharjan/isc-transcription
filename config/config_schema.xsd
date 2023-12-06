@@ -2,13 +2,13 @@
   <xs:element name="config">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="library" type="xs:string"/>
-        <xs:element name="audiodir" type="xs:string"/>
-        <xs:element name="output_dir" type="xs:string"/>
-        <xs:element name="model_type" type="xs:string"/>
-        <xs:element name="verbosity" type="xs:boolean"/>
-        <xs:element name="hf_token" type="xs:string"/>
-        <xs:element name="extensions" type="xs:string"/>
+        <xs:element name="library" type="xs:string" minOccurs="0"/>
+        <xs:element name="audiodir" type="xs:string" minOccurs="0"/>
+        <xs:element name="output_dir" type="xs:string" minOccurs="0"/>
+        <xs:element name="model_type" type="xs:string" minOccurs="0"/>
+        <xs:element name="verbosity" type="xs:boolean" minOccurs="0"/>
+        <xs:element name="hf_token" type="xs:string" minOccurs="0"/>
+        <xs:element name="extensions" type="xs:string" minOccurs="0"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
