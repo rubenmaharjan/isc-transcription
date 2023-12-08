@@ -69,19 +69,28 @@ def parse_command_line_args():
     parser = argparse.ArgumentParser(
         description="Process command-line arguments for audio transcription.")
     #
-    parser.add_argument("-au", "--audio", help="The input audio file or file directory", dest='audiodir', default=DEFAULT_AUDIO)
+    parser.add_argument("-au", "--audio", help="The input audio file or file directory", dest='audiodir')
     parser.add_argument("-cx", "--configxml", help="An alternative xml config file", dest='configxml')
     parser.add_argument("-ct", "--compute_type", help="Specifices the computation type", dest='compute_type')
     parser.add_argument("-dv", "--device", help="Hardware device for diarization", dest='device')
-    parser.add_argument("-ed", "--enable_diarization", help="If true, diarize output after transcription", dest="diarize", default=False)
+    parser.add_argument("-ed", "--enable_diarization", help="If true, diarize output after transcription", dest="diarize", type=str2bool)
     parser.add_argument("-ex", "--extensions", nargs='+', help="List of audio extensions in audiodir", dest='extensions', default=DEFAULT_AUDIO_FILE_EXTENSIONS)
     parser.add_argument("-ht", "--hf_token", help="The user token needed for diarization", dest="hf_token")
     parser.add_argument("-lf", "--logfile", help="The file used to log application output", dest="logfile")
-    parser.add_argument("-mt", "--model_type", help="The model type for transcription", dest="model_type")
-    parser.add_argument("-td", "--output_dir", help="The directory to store transcriptions", dest="output_dir")
+    parser.add_argument("-ms", "--model_size", help="The model size for transcription", dest="model_size")
+    parser.add_argument("-od", "--output_dir", help="The directory to store transcriptions", dest="output_dir")
     
     return vars(parser.parse_args())
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
 
 def validate_configxml(logger, xml_file=DEFAULT_CONFIG_FILE, xsd_schema=DEFAULT_CONFIG_FILE_SCHEMA):
     """

@@ -90,7 +90,8 @@ class TranscriptionConfig():
                 logger.error(f"Error loading config file: {config_file} - {err_to_str(e)}")
 
         for key, value in self.command_line_args.items():
-            self.config_data[key] = value
+            if value is not None:
+                self.config_data[key] = value
 
         print(f"Config data: {self.config_data}")
 

@@ -92,6 +92,7 @@ import os
 import pathlib
 from src.utils.helperFunctions import err_to_str
 import sys
+import time
 
 from whisperx import (DiarizationPipeline, load_audio,
                       load_align_model, load_model, align, assign_word_speakers)
@@ -190,6 +191,7 @@ class WhisperxTranscriber:
         self.logger.info(f"Transcribing with {self.model_size} model")
 
         try:
+            start_time= time.time()
             if os.path.isdir(self.audio_files):
                 self.logger.info(f"Traversing if audio_files is a directory")
                 file_search = IscFileSearch(self.audio_files)
@@ -198,7 +200,8 @@ class WhisperxTranscriber:
                 audio_files = [self.audio_files]
 
             for audio in audio_files:
-                self.logger.info(f"Transcribing audio file: {audio}")
+                self.logger.info(f"{'Diarizing' if self.enable_diarization else 'Transcribing'} audio file: {audio}")
+                audio_start_time= time.time()
                 waveform = load_audio(audio)
                 result = self.model.transcribe(
                     waveform, batch_size=self.batch_size)
@@ -208,14 +211,19 @@ class WhisperxTranscriber:
                 output_dir = str(p.parents[0]) + str(self.output_dir.split('.')[1])
                 base_name = p.name.split('.')[0] + '.txt'
                 output_filename = os.path.join(output_dir, base_name)
+                audio_end_time = time.time()
+                self.audio_elapsed_time = (audio_end_time - audio_start_time)/60
             
                 if self.enable_diarization:
                     self.diarize_and_write(output_dir, output_filename, result, audio)
                 else:
                     self.transcribe_and_write(output_dir, output_filename, result)
+            end_time = time.time()
+            self.total_elapsed_time = (end_time - start_time)/60
+            self.logger.info(f"Total elapsed time for all audio files: {self.total_elapsed_time} minutes")
 
         except Exception as e:
-            self.logger.critical(f"Error during transcription: {err_to_str(e)}")
+            self.logger.critical(f"Error during {'diarization' if self.enable_diarization else 'transcription'}: {err_to_str(e)}")
 
     def diarize_and_write(self, output_dir, output_filename, result, audio):
         """
@@ -263,14 +271,16 @@ class WhisperxTranscriber:
 
             if not os.path.exists(output_filename):
                 with open(output_filename, "w") as output_file:
+                    output_file.write(
+                            f"Time taken to transcribe/diarize: {self.audio_elapsed_time} minutes \n\n")
                     for segment in result["segments"]:
                         output_file.write(
-                            f"{segment['start']} {segment['end']} {segment['text']}\n")
+                            f"[{segment['start']} - {segment['end']}] {segment['speaker']+' : ' if self.enable_diarization else ''} {segment['text']}\n")
             else:
                 self.logger.info(f"Transcription of {output_filename} already exists.")
 
             self.logger.info(
-                f"Finished writing transcription to file: {output_filename}")
+                f"Finished writing {'diarization' if self.enable_diarization else 'transcription'} to file: {output_filename}")
 
         except Exception as e:
-            self.logger.error(f"Error during transcription: {err_to_str(e)}")
+            self.logger.error(f"Error during {'diarization' if self.enable_diarization else 'transcription'}: {err_to_str(e)}")

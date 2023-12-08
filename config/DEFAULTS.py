@@ -109,5 +109,4 @@ DEFAULT_WHISPER_CONFIG = {
     'model_size': 'small',
     'audiodir': './',
     'output_dir': './transcriptions/',
-    'smart_move':'yes',
 }
