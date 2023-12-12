@@ -1,7 +1,9 @@
 # Isc Transcription
 
 ## Description
-The International Storytelling Center has amassed a vast collection of audio files, and transcribing them manually can be time-consuming and tedious. This Python-based project automates the transcription process using Whisper, an advanced Open AI technology that can transcribe and translate audio files with high accuracy. With this tool, the International Storytelling Center can easily convert their audio files into text format, saving valuable time and resources.
+The inception of this project was driven by the International Storytelling Center's imperative need to transcribe and catalog its extensive audio file collection efficiently. Recognizing the manual transcription process as time-consuming and tedious, the project initially focused on leveraging the power of Whisper, an advanced Open AI technology, to automate the transcription and diarization of audio files with exceptional accuracy.
+
+Now, the project has evolved into a versatile application accessible to anyone seeking a streamlined solution for transcribing and diarizing their audio files. Utilizing the robust capabilities of Whisper, this Python-based tool empowers users to effortlessly convert their audio files into text format, offering a time-efficient and resource-saving alternative for individuals, organizations, and cultural institutions alike. The democratization of this technology ensures that the benefits extend beyond the initial motive, providing a valuable and accessible resource for diverse transcription needs.
 
 ## Table of Contents
 
