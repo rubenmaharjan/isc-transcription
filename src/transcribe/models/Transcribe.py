@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+
 class Transcribe(ABC):
     """
            A class to represent the type of Transcription model chosen for transcription.
@@ -27,8 +28,6 @@ class Transcribe(ABC):
         self
 
         """
-
-
 
     @abstractmethod
     def transcribe(self):

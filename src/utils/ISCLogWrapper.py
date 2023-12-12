@@ -1,61 +1,147 @@
+# *************************************************************************************************************************
+#   ISCLogWrapper.py
+#       This module defines a wrapper for the Python logging module, providing a convenient setup for console and
+#       file logging with optional colorized output. It is configurable via a dictionary of default values and supports
+#       custom log formats and date formats.
+# -------------------------------------------------------------------------------------------------------------------
+#   Usage:
+#       The ISCLogWrapper class is used to configure and initialize logging with predefined settings. It supports
+#       customization of console and file log levels, output destinations, and whether to use color in output.
+#
+#       Parameters:
+#           default_dict - A dictionary of default logging configurations including log levels, file paths, and colorization preferences.
+#
+#       Outputs:
+#           Logging output to console and/or to a specified log file, with an optional colorized format for better readability.
+#
+#   Design Notes:
+#   -.  LogRecordFormatter is a custom formatter class that extends logging.Formatter to add color support.
+#   -.  ISCLogWrapper sets up logging according to the configuration provided and applies the LogFormatter.
+# ---------------------------------------------------------------------------------------------------------------------
+#   last updated: November 2023
+#   authors: Ruben Maharjan, Bigya Bajarcharya, Mofeoluwa Jide-Jegede, Phil Pfeiffer
+# *************************************************************************************************************************
+
+# ***********************************************
+# imports
+# ***********************************************
+
+# config.DEFAULTS - module containing default configuration values for the logging setup
+#    DEFAULT_LOGGING_CONFIG - a dictionary containing the default logging configuration settings
+# logging - provides a flexible framework for emitting log messages from Python programs
+#    logging.getLogger - return a logger with the specified name
+#    logging.Formatter - class which formats logging records
+#    logging.StreamHandler - sends logging output to streams like stdout or stderr
+#    logging.FileHandler - sends logging output to a disk file
+# os - provides a portable way of using operating system dependent functionality
+#    os.path.join - join one or more path components intelligently
+# sys - provides access to some variables used or maintained by the interpreter
+#    sys.stdout, sys.stderr - file objects used by the print and exception calls to write their output
+
+import logging
 import os
 import sys
-import logging
-import glob
 
-# Define constants used for the log line format and date format
-LOG_LINE_TEMPLATE="%(color_on)s[%(asctime)s.%(msecs)03d] [%(threadName)s] [%(levelname)-8s] [%(filename)s:%(lineno)d] %(message)s%(color_off)s"
-LOG_LING_DATEFMT="%Y-%m-%d %H:%M:%S"
+from config.DEFAULTS import (DEFAULT_LOG_RECORD_FORMAT_CONFIG,
+                             DEFAULT_LOGGING_CONFIG)
+from .helperFunctions import err_to_str
 
 # Logging formatter supporting colorized output
-class LogFormatter(logging.Formatter):
+# ***************************************************************************************************************************
+# LogRecordFormatter:  Set up object for controlling the appearance of log records
+#
+#    Methods:
+#     __init__():  set up parameters for formatting the log
+#         Parameters:
+#            useColor – determine whether to colorize log records
+#       line_format():  return config module default for record format
+#       date_format():  return config module default for date format
+#       format(): format a log record
+#         Parameters:
+#           record – record to format
+#         Outputs:
+#           The formatted record
+# ***************************************************************************************************************************
 
-    COLOR_CODES = {
-        logging.CRITICAL: "\033[1;35m", # bright/bold magenta
-        logging.ERROR:    "\033[1;31m", # bright/bold red
-        logging.WARNING:  "\033[1;33m", # bright/bold yellow
-        logging.INFO:     "\033[0;37m", # white / light gray
-        logging.DEBUG:    "\033[1;30m"  # bright/bold black / dark gray
-    }
 
-    RESET_CODE = "\033[0m"
+class LogRecordFormatter(logging.Formatter):
+
+    @staticmethod
+    def line_format(): return DEFAULT_LOG_RECORD_FORMAT_CONFIG['line_format']
+
+    @staticmethod
+    def date_format(): return DEFAULT_LOG_RECORD_FORMAT_CONFIG['date_format']
 
     def __init__(self, color, *args, **kwargs):
-        super(LogFormatter, self).__init__(*args, **kwargs)
-        self.color = color
+        super(LogRecordFormatter, self).__init__(*args, **kwargs)
+        self.useColor = color
+        self.colorCodes = DEFAULT_LOG_RECORD_FORMAT_CONFIG['color_codes']
+        self.resetCode = DEFAULT_LOG_RECORD_FORMAT_CONFIG['reset']
 
     def format(self, record, *args, **kwargs):
-        if (self.color == True and record.levelno in self.COLOR_CODES):
-            record.color_on  = self.COLOR_CODES[record.levelno]
-            record.color_off = self.RESET_CODE
-        else:
-            record.color_on  = ""
-            record.color_off = ""
-        return super(LogFormatter, self).format(record, *args, **kwargs)
+        record.color_on, record.color_off = "", ""
+        if (self.useColor and record.levelno in self.colorCodes):
+            record.color_on = self.colorCodes[record.levelno]
+            record.color_off = self.resetCode
+        return super(LogRecordFormatter, self).format(record, *args, **kwargs)
 
-# This class wraps the logging module and provides methods to set up logging
-class ISCLogWrapper:
+# ***************************************************************************************************************************
+# ISCLogWrapper:  wrap the logging module, providing methods to set up logging
+#
+#    Methods:
+#     __init__():  set up parameters for formatting the log
+#         Parameters:
+#            log_dict: define the following parameters for logging operation –
+#                console_log_output– where to direct console messages
+#                console_log_level – minimum level at which to log console messages
+#                console_colorize – whether to colorize log console messages
+#                logfile_path– path to file (ignored if name set to stdout or stderr)
+#                logfile_file – name of file
+#                logfile_log_level – minimum level at which to log logfile messages
+#                logfile_colorize – whether to colorize logfile  messages
 
-    # The constructor takes several arguments that configure logging
-    def __init__(self, console_log_output, console_log_level, console_log_color, logfile_file, logfile_path, logfile_log_level, logfile_log_color):
-        self.console_log_output = console_log_output # The output to write the console logs to (stdout or stderr)
-        self.console_log_level = console_log_level # The minimum logging level to log to the console (e.g., INFO, WARNING, etc.)
-        self.console_log_color = console_log_color # A boolean value indicating whether the console log should be colorized
-        self.logfile_file = logfile_file # The filename to write the logs to
-        self.logfile_path = logfile_path # The directory path to write the logs to
-        self.logfile_log_level = logfile_log_level # The minimum logging level to log to the file
-        self.logfile_log_color = logfile_log_color # A boolean value indicating whether the file log should be colorized
+#
+#       format(): format a log recrod
+#         Parameters:
+#           record – record to format
+#         Outputs:
+#           The formatted record
+# ***************************************************************************************************************************
+
+
+class ISCLogWrapper(object):
+
+    def __init__(self, config):
+        # Configurable logging parameters
+        self.console_log_output = config.get('console_log_output') if 'console_log_output' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['console']['output']
+        self.console_log_level = config.get('console_log_level') if 'console_log_level' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['console']['log_level']
+        self.console_colorize = config.get('console_colorize') if 'console_colorize' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['console']['colorize']
+        self.logfile_path = config.get('logfile_path') if 'logfile_path' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['logfile']['path']
+        self.logfile_file = config.get('logfile_file') if 'logfile_file' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['logfile']['name']
+        self.logfile_log_level = config.get('logfile_log_level') if 'logfile_log_level' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['logfile']['log_level']
+        self.logfile_colorize = config.get('logfile_colorize') if 'logfile_colorize' in config.get_all(
+        ) else DEFAULT_LOGGING_CONFIG['logfile']['colorize']
+
+        # Log record formatting parameters
+        self.line_format = config.get('line_format') if 'line_format' in config.get_all(
+        ) else LogRecordFormatter.line_format()
+        self.date_format = config.get('date_format') if 'date_format' in config.get_all(
+        ) else LogRecordFormatter.date_format()
 
     # Set up logging using the configuration values passed to the constructor
-
-    # Set up logging
     def set_up_logging(self):
 
         # Create logger
-        # For simplicity, we use the root logger, i.e. call 'logging.getLogger()'
-        # without name argument. This way we can simply use module methods for
-        # for logging throughout the script. An alternative would be exporting
-        # the logger, i.e. 'global logger; logger = logging.getLogger("<name>")'
+        # For simplicity, we use the root logger, i.e. call 'logging.getLogger()' without a name argument.
+        # This way we can simply use module methods for logging throughout the script.
+        # An alternative would be exporting the logger, i.e.
+        #     'global logger; logger = logging.getLogger("<name>")'
         logger = logging.getLogger()
 
         # Set global log level to 'debug' (required for handler levels to work)
@@ -68,38 +154,52 @@ class ISCLogWrapper:
         elif (console_log_output == "stderr"):
             console_log_output = sys.stderr
         else:
-            print("Failed to set console output: invalid output: '%s'" % console_log_output)
-            return False
+            print(
+                f"Invalid console output: {console_log_output}",  file=sys.stderr)
+
         console_handler = logging.StreamHandler(console_log_output)
 
         # Set console log level
         try:
-            console_handler.setLevel(self.console_log_level.upper()) # only accepts uppercase level names
-        except:
-            print("Failed to set console log level: invalid level: '%s'" % self.console_log_level)
+            # only accepts uppercase level names
+            console_handler.setLevel(self.console_log_level.upper())
+        except Exception as exception:
+            print(
+                f"Failed to set console log level. Invalid level: {self.console_log_level}  \n Error: {err_to_str(exception)}",  file=sys.stderr)
             return False
 
         # Create and set formatter, add console handler to logger
-        console_formatter = LogFormatter(fmt=LOG_LINE_TEMPLATE, color=self.console_log_color, datefmt=LOG_LING_DATEFMT)
+        console_formatter = LogRecordFormatter(
+            fmt=self.line_format, color=self.console_colorize, datefmt=self.date_format)
         console_handler.setFormatter(console_formatter)
         logger.addHandler(console_handler)
 
         # Create log file handler
         try:
-            logfile_handler = logging.FileHandler(os.path.join(self.logfile_path, self.logfile_file))
+            if (console_log_output == "stdout"):
+                logfile_handler = logging.FileHandler(sys.stdout)
+            elif (console_log_output == "stderr"):
+                logfile_handler = logging.FileHandler(sys.stderr)
+            else:
+                logfile_handler = logging.FileHandler(
+                    os.path.join(self.logfile_path, self.logfile_file))
         except Exception as exception:
-            print("Failed to set up log file: %s" % str(exception))
+            print(
+                f"Failed to set up log file: {err_to_str(exception)}",  file=sys.stderr)
             return False
 
         # Set log file log level
         try:
-            logfile_handler.setLevel(self.logfile_log_level.upper()) # only accepts uppercase level names
-        except:
-            print("Failed to set log file log level: invalid level: '%s'" % self.logfile_log_level)
+            # only accepts uppercase level names
+            logfile_handler.setLevel(self.logfile_log_level.upper())
+        except Exception as exception:
+            print(
+                f"Failed to set up log file log level: {err_to_str(exception)}",  file=sys.stderr)
             return False
 
         # Create and set formatter, add log file handler to logger
-        logfile_formatter = LogFormatter(fmt=LOG_LINE_TEMPLATE, color=self.logfile_log_color, datefmt=LOG_LING_DATEFMT)
+        logfile_formatter = LogRecordFormatter(
+            fmt=self.line_format, color=self.logfile_colorize, datefmt=self.date_format)
         logfile_handler.setFormatter(logfile_formatter)
         logger.addHandler(logfile_handler)
 
